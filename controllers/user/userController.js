@@ -3,10 +3,20 @@ const { assign } = require("nodemailer/lib/shared");
 const User=require("../../models/userSchema");
 const nodemailer=require("nodemailer");
 const env=require("dotenv").config();
-const bcrypt=require("bcrypt")
+const bcrypt=require("bcrypt");
+const { session } = require("passport");
 const loadHomepage=async (req,res) => {
     try {
-     return res.render("home");
+        const user=req.session.user;
+        console.log(user)
+        if(user){
+            const userData= await User.findOne({username:user.username});
+            // console.log(user);
+            return res.render("home",{user:userData});
+        }else{
+            return res.render("home");
+        }
+       
     } catch (error) {
         console.log(error,"Home not found");
         res.status(500).send("Server error")
@@ -86,7 +96,7 @@ const signup=async (req,res) => {
         }
 
         req.session.userOtp=otp;
-        req.session.userData={username,email,phone,password};
+        req.session.user={username,email,phone,password};
 
         res.render("verify-otp");
         console.log("OTP sent",otp);
@@ -132,7 +142,7 @@ const verifyOtp=async (req,res) => {
         const {otp}=req.body;
         console.log(otp);
         if(otp==req.session.userOtp){
-            const user=req.session.userData;
+            const user=req.session.user;
             const passwordHash=await securePassword(user.password);
             const saveUserData= new User({
                 username:user.username,
@@ -142,7 +152,8 @@ const verifyOtp=async (req,res) => {
             })
 
             await saveUserData.save();
-            req.session.user=saveUserData._id;
+            req.session.user=saveUserData;
+            console.log(saveUserData)
             res.json({success:true,redirectUrl:"/"})
         }else{
             res.status(400).json({success:false,message:"Invalid OTP,Please try again"})
@@ -155,7 +166,7 @@ const verifyOtp=async (req,res) => {
 
 const resendOtp=async (req,res) => {
     try {
-        const {email}=req.session.userData;
+        const {email}=req.session.user;
         if(!email){
     res.status(400).json({succes:false,message:"email not found in the sesion"})
     }
@@ -184,19 +195,19 @@ const loadLogin=async (req,res) => {
            return res.render("login");
 
         }else{
-            res.redirect("/")
+            return res.redirect("/")
         }
        
     } catch (error) {
         console.log(error)
-        res.redirect("/pageNotFound");
+       return res.redirect("/pageNotFound");
     }
 }
 const login=async (req,res) => {
     try {
         const {email,password}=req.body;
         const findUser=await User.findOne({isAdmin:0,email:email});
-        console.log(findUser);
+        
         if(!findUser){
             return res.render("login",{message:"user not foud"});
         }
@@ -208,12 +219,31 @@ const login=async (req,res) => {
             return res.render("login",{message:"Incorrect password"});
         }
 
-        req.session.user=findUser._id;
+        req.session.user=findUser;
+        
+        
         res.redirect("/");
         
     } catch (error) {
         console.error("loginError",error);
         res.render("login",{message:"login failed. please try again later"});
+    }
+}
+const logout=async (req,res) => {
+    try {
+        
+         req.session.destroy((err)=>{
+            if(err){
+                console.log(err);
+                return res.redirect("/pageNotFound")
+                    
+            }
+        });
+        return res.redirect("/");
+       
+    } catch (error) {
+        console.log(error);
+        
     }
 }
 
@@ -226,5 +256,6 @@ module.exports={
     verifyOtp,
     resendOtp,
     loadLogin,
-    login
+    login,
+    logout
 }

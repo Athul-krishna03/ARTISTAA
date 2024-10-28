@@ -18,7 +18,7 @@ const categorySchema= new Schema({
     categoryOffer:{
         type:Schema.Types.ObjectId,
         ref:"Category",
-        required:true
+        
     },createdAt:{
         type:Date,
         default:Date.now
@@ -26,8 +26,5 @@ const categorySchema= new Schema({
     }
 })
 
-const Category=mongoose.model("Category",categorySchema);
+module.exports=mongoose.model("Category",categorySchema);
 
-module.exports={
-    Category
-}

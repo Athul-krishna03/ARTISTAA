@@ -4,7 +4,8 @@ const adminController=require("../controllers/admin/adminControllers");
 const auth=require("../middlewares/auth");
 const customerController=require("../controllers/admin/customerController");
 const categoryController=require("../controllers/admin/categoryControllers");
-const brandController = require("../controllers/admin/brandControllers")
+const brandController = require("../controllers/admin/brandControllers");
+const productController=require("../controllers/admin/productControllers");
 const multer = require("multer");
 const storage = require("../helpers/multer");
 const uploads = multer({storage:storage});
@@ -32,7 +33,23 @@ router.get("/editCategory",auth.adminAuth,categoryController.getEditCategory);
 router.post("/editCategory",auth.adminAuth,categoryController.EditCategory)
 
 //Brand routes
-router.get("/brands",auth.adminAuth,brandController.getBrands)
+router.get("/brands",auth.adminAuth,brandController.getBrands);
+router.post("/addBrand",auth.adminAuth,uploads.single("image"),brandController.addBrand);
+router.get("/blockBrand",auth.adminAuth,brandController.blockBrand);
+router.get("/deleteBrand",auth.adminAuth,brandController.deleteBrand);
+
+//product routes
+router.get("/addProducts",auth.adminAuth,productController.getProductAddPage);
+router.post("/addProducts",auth.adminAuth,uploads.array("images",4),productController.addProducts);
+router.get("/products",auth.adminAuth,productController.getAllProducts);
+router.post("/addProductOffer",auth.adminAuth,productController.addProductOffer);
+router.post("/removeProductOffer",auth.adminAuth,productController.removeProductOffer);
+router.get("/blockProduct",auth.adminAuth,productController.blockProduct);
+router.get("/editProduct",auth.adminAuth,productController.getEditProduct)
+router.post("/editProduct",auth.adminAuth,uploads.array("images",4),productController.editProduct);
+router.post("/deleteImage",auth.adminAuth,productController.deleteSingleImage);
+
+
 
 
 module.exports=router;

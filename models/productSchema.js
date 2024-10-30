@@ -43,7 +43,7 @@ const productSchema= new Schema({
     isBlocked:{
         type:Boolean,
         default:false
-    },  status:{
+    },status:{
         type:String,
         enum:["Available","out of stock","Discountinued"],
         required:true,

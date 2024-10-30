@@ -21,12 +21,11 @@ const loadlogin=async (req,res) => {
 const login =async (req,res) => {
     try {
         const {email,password}=req.body;
-        console.log(req.body);
         const admin = await User.findOne({email,isAdmin:true})
         req.session.user=admin
         if(admin){
             const passMatch=await bcrypt.compare(password,admin.password);
-            console.log(passMatch)
+            
             if(passMatch){
                 req.session.admin=true;
                 return res.redirect("/admin");

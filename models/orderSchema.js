@@ -9,6 +9,12 @@ const orderSchema= new Schema({
         default:()=>uuidv4(),
         unique:true,
     },
+    userId:{
+        type:Schema.Types.ObjectId,
+        ref:"User",
+        required:true
+        
+    },
     orderedItems:[{
         product:{
           type:Schema.Types.ObjectId,
@@ -29,13 +35,17 @@ const orderSchema= new Schema({
         type:Number,
         required:true
     },  
+    paymentMethod:{
+       type:String,
+       
+    },
     discount:{
         type:Number,
         default:0
     },
     finalAmount:{
         type:Number,
-        required:true
+        
     },
     address:{
         type:Schema.Types.ObjectId,
@@ -58,8 +68,5 @@ const orderSchema= new Schema({
     }
 })
 
-const Order=mongoose.model("Order",orderSchema);
 
-module.exports={
-    Order
-}
+module.exports=mongoose.model("Order",orderSchema);

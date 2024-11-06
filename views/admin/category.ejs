@@ -173,21 +173,17 @@
     </div>
   
     <div class="container mt-3">
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
-                  <% if (currentPage > 1) { %>
-                  <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-                  <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i ===
-                  currentPage) { %>
-                  <span class="current-page"  ><%= i %></span>
-                  <% } else { %>
-                  <a style="z-index: 1000;" href="?page=<%= i %>"><%= i %></a>
-                  <% } %> <% } %> <% if (currentPage < totalPages) { %>
-                  <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
-                  <% } %>
-                </ul>
-            </nav>
-        </div>
+      <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center mb-20" style="margin-right: 200px; display: flex;">
+              <% for(let i=1;i<=totalPages;i++){ %>
+                  <li class="page-item <%= (i===currentPage) ? 'active' : '' %>">
+                      <a style="z-index: 100;" class="page-link" href="?page= <%=  i %>"><%= i %></a>
+
+                  </li>
+              <% } %>
+          </ul>
+      </nav>
+  </div>
         
   
   </section>

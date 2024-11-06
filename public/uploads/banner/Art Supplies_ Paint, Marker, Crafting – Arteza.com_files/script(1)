@@ -1,0 +1,339 @@
+(function () {
+  ('use strict');
+  window.sib = {
+    equeue: [],
+	client_key: 'swotzf3k49rynndu776i5ddy',
+	sib_automation_host: 'https://sibautomation.com',
+	plugin_end_point: 'https://plugin.brevo.com/integrations/api',
+	user_connection_id: '65ce3c6656e5bb7e9e30166b', 
+	isShopifyScopeUpdated: true,
+	isNewTrackingAllowed: false
+  };
+  
+  	window.sendinblue = {
+		ecommerce: {},
+	};
+
+	if (window.sib_email_id !== undefined) {
+		window.sib.email_id = window.sib_email_id;
+	}
+
+	const { location: currentLocation, ShopifyAnalytics: shopifyAnalytics, jQuery } = window;
+	const {
+		href: currentHref,
+		hostname: currentHostname,
+		pathname: currentPathname,
+	} = currentLocation;
+
+	const { meta: { page: { customerId } = {} } = {} } = shopifyAnalytics || {};
+	const { plugin_end_point, user_connection_id, email_id, client_key} = window.sib
+	const pluginGetEmailAPI= `${plugin_end_point}/${user_connection_id}/identify`
+	const pluginCheckoutIdentifyAPI= `${plugin_end_point}/user_connections/${user_connection_id}/checkout_identify`;
+	const getSearchParam = name => new URLSearchParams(currentLocation.search).get(name);
+
+	const previousCartTokenName = 'sibMAPreviousCartToken';
+	const vistiorIdCookieName = 'sib_cuid';
+	const customeIdCookieName = 'sib_customer_id';
+	const sessionInfoCookieName = 'cbuid_meta';
+	const custEmailCookieName = 'sib_customer_email';
+
+	const checkPageName = (regex) => {
+		const pagePath = currentPathname.match(regex);
+		return pagePath ? pagePath[1] : undefined;
+	};
+
+	const setCookie = (name, value, days = '6.25') => {
+		let expires = '';
+		if (days) {
+			const date = new Date();
+			date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+			expires = `; expires=${date.toUTCString()}`;
+		}
+		document.cookie = `${name}=${value || ''}${expires}; path=/`;
+	};
+
+	const getCookie = (cookieName) => {
+		const name = `${cookieName}=`;
+		const cookieArray = document.cookie.split(';');
+		for (let i = 0; i < cookieArray.length; i++) {
+			let cookie = cookieArray[i];
+			while (cookie.charAt(0) === ' ') cookie = cookie.substring(1, cookie.length);
+			if (cookie.indexOf(name) === 0) return cookie.substring(name.length, cookie.length);
+		}
+		return null;
+	};
+
+	const getAJAXCall = (url, callback) => {
+		const request = new XMLHttpRequest();
+		request.open('GET', url, true);
+		request.onload = function () {
+			if (request.status >= 200 && request.status < 400) {
+				const json = JSON.parse(request.responseText);
+				callback(json);
+			}
+		};
+		request.onerror = function () {
+			// console.error('There was an error connecting to the server.');
+		};
+		request.send();
+	};
+
+	const postAJAXCall = (url, body, callback) => {
+		const request = new XMLHttpRequest();
+		request.open('POST', url, true);
+		request.setRequestHeader("content-type", "application/json")
+		request.onload = function () {
+			if (request.status >= 200 && request.status < 400) {
+				const {responseText} = request;
+				const json = responseText && JSON.parse(responseText);
+				callback(json);
+			}
+		};
+		request.onerror = function () {
+			// console.error('There was an error connecting to the server.');
+		};
+		request.send(JSON.stringify(body));
+	};
+    
+	const get_visitor_uid = () => getCookie(vistiorIdCookieName);
+
+	let previousCustomerId = parseInt(getCookie(customeIdCookieName), 10);
+	let sib_customer_email = previousCustomerId && (customerId === previousCustomerId) ? getCookie(custEmailCookieName) : email_id;
+	const setSessionInformation = () => {
+		intialValue = getCookie(sessionInfoCookieName);
+		if(intialValue) return JSON.parse(intialValue);
+		const sessionInformation = {
+			referrer: window.document.referrer,
+			href: currentHref,
+		  }
+		setCookie(sessionInfoCookieName, JSON.stringify(sessionInformation));
+		return sessionInformation
+	};
+	const sib_meta_href = setSessionInformation().href;
+
+	const getCustomerEmail = (reqParams) => {
+		postAJAXCall(pluginGetEmailAPI, reqParams, (customer) => {
+			const { email } = customer;
+			if(email && email.indexOf('@') !== -1){
+				setCookie(customeIdCookieName, customerId);
+				setCookie(custEmailCookieName, email);
+				previousCustomerId = customerId;
+				sib_customer_email = email;
+				window.sendinblue.identify(email);
+			}
+		});
+	};
+
+	const saveCartToken = () => {
+		getAJAXCall("/cart.js", (cart) => {
+			const {items, token} = cart;
+			const visitor_uid = get_visitor_uid();
+			if(!token || !visitor_uid) return;
+			if (items && items.length && getCookie(previousCartTokenName) !== token){
+				const data = {
+					visitor_uid,
+					cart_token: token,
+					ma_key: client_key,
+				}; 
+				sib_customer_email && ( data.email=sib_customer_email );
+				postAJAXCall(pluginCheckoutIdentifyAPI, data, () => {
+					setCookie(previousCartTokenName, token); 
+				});
+			} 
+		});
+	} 
+
+	window.sibShopify = {
+
+		watchForCustomerInfo: () => {
+			if(sib_customer_email){
+				window.sendinblue.identify(sib_customer_email);
+			} 
+			else {
+				customerId && getCustomerEmail({shopify_id: customerId, session:sib_meta_href });
+			}
+		},
+
+		watchForUpdatedCartToken: () => {
+			jQuery && jQuery(window.document).ajaxSuccess(function (event, xhr, settings) {
+				if (settings.url.match(/\/cart\/(add|update|change)/)) saveCartToken();
+			});
+			(function(ns,fetch){
+				if(typeof fetch !== 'function') return;
+				ns.fetch = function() {
+					var out = fetch.apply(this, arguments);
+					out.then(
+					  function(responseJson) {
+						if (responseJson.status && responseJson.status == 200) {
+							if (responseJson.url.match(/\/cart\/(add|update|change)/)) saveCartToken();
+						}
+					  });
+					return out;
+				}
+			})(window,window.fetch)
+		},
+
+		watchForAnyPages: () => {
+			if (currentPathname === '/') {
+				window.sendinblue.page('Homepage');
+			} else if (currentPathname.match('/thank_you')) {
+				window.sendinblue.page('Thank you');
+				const urlPathComponents = window.location.pathname.match('.*/(.*)/thank_you');
+				if( !sib_customer_email && urlPathComponents && urlPathComponents.length >= 1 ){
+					const prevCartToken = getCookie(previousCartTokenName);
+					const visitor_uid = get_visitor_uid();
+					const checkOutParam = {
+						visitor_uid,
+						checkout_token: urlPathComponents[1],
+						ma_key: client_key,
+					};
+					prevCartToken && (checkOutParam.cart_token = prevCartToken);
+
+					postAJAXCall(pluginCheckoutIdentifyAPI, checkOutParam, () => {
+						setCookie(previousCartTokenName);
+					});
+				}
+			} else {
+				const pageName = checkPageName(/\/pages\/([a-z0-9_-]+)$/) || '';
+				pageName ? window.sendinblue.page(pageName) : window.sendinblue.page();
+			}
+		},
+
+		watchForViewCategoryPage: () => {
+			const collectionName = checkPageName(/collections\/([a-z0-9_-]+)$/);
+			const collectionId = shopifyAnalytics.meta.page.resourceId;
+			if (
+				!collectionName
+        || collectionName === 'all'
+        || collectionId === undefined
+			) {
+				return;
+			}
+			window.sendinblue.ecommerce.viewCategory(String(collectionId));
+		},
+
+		watchForViewProductPage: () => {
+			const productHandle = checkPageName(/\/products\/([a-z0-9_-]+)/);
+			if (!productHandle) return;
+			getAJAXCall(`/products/${productHandle}.js`, (product) => {
+				const { variants = {}, id: prodId } = product;
+				const { 0: { title: prodTitle = '' } = {} } = variants;
+				if (prodTitle === 'Default Title' && prodId) {
+					window.sendinblue.ecommerce.viewProduct(String(prodId));
+				} else {
+					// the first variant does't show up in the url query by default,
+					// so we have to take it from the product object
+					// Update: strip non-numeric symbols. IDs in Shopify are unsigned 64-bit integers.
+					let variantId = parseInt(getSearchParam('variant'), 10);
+					if (Number.isNaN(variantId)) {
+						variantId = prodId;
+					}
+					window.sendinblue.ecommerce.viewProduct(String(variantId));
+				}
+			});
+		},
+
+		watchForViewSearchPage: () => {
+			if (currentPathname !== '/search') return;
+			const searchQuery = decodeURIComponent(
+				currentLocation.search.replace(/\?q=/, '').replace(/\+/g, ' ')
+			);
+			if (searchQuery !== '') {
+				window.sendinblue.ecommerce.search(searchQuery, currentHref);
+			}
+		},
+
+	};
+
+	function loadScript(script, callback) {
+		if (script.readyState) {
+			// only required for IE <9
+			script.onreadystatechange = function () {
+				if (
+					script.readyState === 'loaded'
+          || script.readyState === 'complete'
+				) {
+					script.onreadystatechange = null;
+					callback();
+				}
+			};
+		} else {
+			// Others
+			script.onload = function () {
+				callback();
+			};
+		}
+	}
+
+	for (
+		var j = [
+				'track',
+				'identify',
+				'trackLink',
+				'page',
+				'viewProduct',
+				'viewCategory',
+				'search',
+			],
+			i = 0;
+		i < j.length;
+		i++
+	) {
+		(function (k) {
+			if (i <= 3) {
+				window.sendinblue[k] = function () {
+					var arg = Array.prototype.slice.call(arguments);
+					(
+						window.sib[k]
+            || function () {
+            	var t = {};
+            	t[k] = arg;
+            	window.sib.equeue.push(t);
+            }
+					)(arg[0], arg[1], arg[2]);
+				};
+			} else {
+				window.sendinblue.ecommerce[k] = function () {
+					var arg = Array.prototype.slice.call(arguments);
+					(
+						window.sib[k]
+            || function () {
+              var t = {};
+            	t[k] = arg;
+            	window.sib.equeue.push(t);
+            }
+					)(arg[0], arg[1], arg[2]);
+				};
+			}
+    })(j[i]);
+	}
+  var n = document.createElement('script'),
+  i = document.getElementsByTagName('script')[0];
+  (n.type = 'text/javascript'),
+  (n.id = 'sendinblue-js'),
+  (n.async = !0),
+  (n.src = `${window.sib.sib_automation_host}/sa.js?key=${window.sib.client_key}`),
+  i.parentNode.insertBefore(n, i),
+  // call the function only on automation script load....
+  loadScript(n, () => {
+	if(!window.ShopifyAnalytics){
+		  	window.sendinblue.page();
+	  } else {
+			const { sibShopify, sib } = window;
+			const isShopifyScopeUpdated =  sib && sib.isShopifyScopeUpdated === true;
+			const isNewTrackingAllowed =  sib && sib.isNewTrackingAllowed === true;
+			sibShopify.watchForCustomerInfo();
+			if(!isShopifyScopeUpdated){
+				window.sendinblue.page();
+			} else {
+				sibShopify.watchForAnyPages();
+				sibShopify.watchForUpdatedCartToken(); // always call the function after watch for page call
+				if(isNewTrackingAllowed){
+					sibShopify.watchForViewCategoryPage();
+					sibShopify.watchForViewProductPage();
+					sibShopify.watchForViewSearchPage();
+				}
+			}
+	  }
+	});
+}());

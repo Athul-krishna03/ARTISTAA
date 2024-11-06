@@ -1,139 +1,167 @@
-<%- include("../partials/user/header.ejs") %>
+<!DOCTYPE html>
+<html class="no-js" lang="en">
 
-    <div class="login_wrap widget-taber-content p-30 background-white border-radius-5">
-        <div class="padding_eight_all bg-white">
-            <div class="heading_s1">
-                <h3 class="mb-30">Create an Account</h3>
-            </div>
-            <p class="mb-50 font-sm">
-                Your personal data will be used to support your experience throughout this website, to manage access to your account, and for other purposes described in our privacy policy.
-            </p>
-            <form id="signupForm" action=""  method="post" onsubmit="return validateForm()">
-                <div class="form-group">
-                    <input type="text" required="" name="username" id="username" placeholder="Username">
-                    <span id="usernameError" class="error-message"></span>
-                </div>
-                <div class="form-group">
-                    <input type="email" required="" name="email" id="email" placeholder="Email">
-                    <span id="emailError" class="error-message"></span>
-                </div>
-                <div class="form-group">
-                    <input type="tel" required="" name="phone" id="phone" placeholder="Phone Number">
-                    <span id="phoneError" class="error-message"></span>
-                </div>
-                <div class="form-group">
-                    <input required="" type="password" name="password" id="password" placeholder="Password">
-                    <span id="passwordError" class="error-message"></span>
-                </div>
-                <div class="form-group">
-                    <input required="" type="password" name="cPassword" id="confirmPassword" placeholder="Confirm password">
-                    <span id="confirmPasswordError" class="error-message"></span>
-                </div>
-                <div class="login_footer form-group">
-                    <div class="chek-form">
-                        <div class="custome-checkbox">
-                            <input class="form-check-input" type="checkbox" name="checkbox" id="termsCheckbox" value="">
-                            <label class="form-check-label" for="termsCheckbox"><span>I agree to terms &amp; Policy.</span></label>
-                        </div>
-                    </div>
-                    <a href="page-privacy-policy.html"><i class="fi-rs-book-a0lt mr-5 text-muted"></i>Learn more</a>
-                    <span id="termsError" class="error-message"></span>
-                </div>
-                <% if (typeof message !== 'undefined' && message.length > 0) { %>
-                    <div class="alert alert-danger" role="alert">
-                      <%= message %>
-                    </div>
-                  <% } %>
-                  
-                <div class="form-group">
-                    <button type="submit" class="btn btn-fill-out btn-block hover-up" name="login">Submit &amp; Register</button>
-                </div>
-            </form>
-            <div class="divider-text-center mt-15 mb-15">
-                <span> or</span>
-            </div>
-            <ul class="btn-login list_none text-center mb-15">
-                <li><a href="#" class="btn btn-facebook hover-up mb-lg-0 mb-sm-4">Login With Facebook</a></li>
-                <li><a href="/auth/google" class="btn btn-google hover-up">Login With Google</a></li>
-            </ul>
-            <div class="text-muted text-center">Already have an account? <a href="#">Sign in now</a></div>
-        </div>
-    </div>
-    
-    <!-- JavaScript for form validation -->
-    <script>
-        function validateForm() {
-            let isValid = true;
-    
-                // Username validation (alphanumeric, 5 to 15 characters)
-            const username = document.getElementById('username').value;
-            const usernameRegex = /^[a-zA-Z0-9]{5,15}$/; // Alphanumeric, 5 to 15 characters
-            if (!usernameRegex.test(username)) {
-                document.getElementById('usernameError').innerText = 'Username must be 5-15 characters and alphanumeric.';
-                isValid = false;
-            } else {
-                document.getElementById('usernameError').innerText = '';
-            }
-
-       
-    
-            // Email validation
-            const email = document.getElementById('email').value;
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            if (!emailRegex.test(email)) {
-                document.getElementById('emailError').innerText = 'Please enter a valid email address.';
-                isValid = false;
-            } else {
-                document.getElementById('emailError').innerText = '';
-            }
-    
-            // Phone number validation
-            const phone = document.getElementById('phone').value;
-            const phoneRegex = /^\d{10}$/; // Allows 10-15 digits for phone number
-            if (!phoneRegex.test(phone)) {
-                document.getElementById('phoneError').innerText = 'Please enter a valid phone number 10 digits.';
-                isValid = false;
-            } else {
-                document.getElementById('phoneError').innerText = '';
-            }
-    
-            // Password validation
-            const password = document.getElementById('password').value;
-            if (password.length < 8) {
-                document.getElementById('passwordError').innerText = 'Password must be at least 6 characters.';
-                isValid = false;
-            } else {
-                document.getElementById('passwordError').innerText = '';
-            }
-    
-            // Confirm password validation
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            if (confirmPassword !== password) {
-                document.getElementById('confirmPasswordError').innerText = 'Passwords do not match.';
-                isValid = false;
-            } else {
-                document.getElementById('confirmPasswordError').innerText = '';
-            }
-    
-            // Terms and conditions checkbox validation
-            const termsCheckbox = document.getElementById('termsCheckbox').checked;
-            if (!termsCheckbox) {
-                document.getElementById('termsError').innerText = 'You must agree to the terms and policy.';
-                isValid = false;
-            } else {
-                document.getElementById('termsError').innerText = '';
-            }
-    
-            return isValid;
-        }
-    </script>
-    
-    <!-- CSS for error messages -->
+<head>
+    <meta charset="utf-8">
+    <title>Signup - eCommerce</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/uploads/banner/logoSVG.png">
+    <!-- Template CSS -->
+    <link rel="stylesheet" href="evara-frontend/assets/css/main.css?v=3.4">
     <style>
         .error-message {
             color: red;
-            font-size: 12px;
+            font-size: 14px;
+            display: block;
+            margin-top: 5px;
         }
     </style>
-    
-<%- include("../partials/user/footer.ejs") %>
+</head>
+
+<body>
+    <section class="pt-150 pb-150">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 m-auto">
+                    <div class="login_wrap widget-taber-content p-30 background-white border-radius-5">
+                        <div class="padding_eight_all bg-white">
+                            <div class="heading_s1">
+                                <h3 class="mb-30">Create an Account</h3>
+                            </div>
+                            <p class="mb-50 font-sm">
+                                Your personal data will be used to support your experience throughout this website, to manage access to your account, and for other purposes described in our privacy policy.
+                            </p>
+                            <!-- Form -->
+                            <form id="signupForm" method="post" action="" onsubmit="return validateForm()">
+                                <div class="form-group">
+                                    <input type="text" name="username" id="username" placeholder="Full Name">
+                                    <span id="usernameError" class="error-message"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="email" id="email" placeholder="Email">
+                                    <span id="emailError" class="error-message"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" name="phone" id="phone" placeholder="Phone">
+                                    <span id="phoneError" class="error-message"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" name="password" id="password" placeholder="Password">
+                                    <span id="passwordError" class="error-message"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" name="cpassword" id="cpassword" placeholder="Confirm Password">
+                                    <span id="cpasswordError" class="error-message"></span>
+                                </div>
+                                <div class="login_footer form-group">
+                                    <div class="chek-form">
+                                        <div class="custome-checkbox">
+                                            <input class="form-check-input" type="checkbox" name="terms" id="terms">
+                                            <label class="form-check-label" for="terms"><span>I agree to terms &amp; Policy.</span></label>
+                                        </div>
+                                    </div>
+                                    <span id="termsError" class="error-message"></span>
+                                    <a href="page-privacy-policy.html"><i class="fi-rs-book-alt mr-5 text-muted"></i>Learn more</a>
+                                </div>
+                                <% if(locals.message && message.length > 0){%>
+                                    <div class="alert alert-danger text-center">
+                                        <%=message%>
+                                    </div>
+                                <%} %>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-fill-out btn-block hover-up" name="signup">Submit &amp; Register</button>
+                                </div>
+                            </form>
+                            <div class="divider-text-center mt-15 mb-15">
+                                <span>or</span>
+                            </div>
+                            <ul class="btn-login list_none text-center mb-15">
+                                <li><a href="/auth/google" class="btn btn-google hover-up">Login With Google</a></li>
+                            </ul>
+                            <div class="text-muted text-center mt-15">Already have an account? <a href="/login">Sign in now</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Vendor JS -->
+    <script src="evara-frontend/assets/js/vendor/jquery-3.6.0.min.js"></script>
+    <script src="evara-frontend/assets/js/vendor/bootstrap.bundle.min.js"></script>
+    <!-- Template JS -->
+    <script src="evara-frontend/assets/js/main.js?v=3.4"></script>
+
+    <!-- JavaScript Validation -->
+    <script>
+        function validateForm() {
+            let isValid = true;
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const cpassword = document.getElementById('cpassword').value.trim();
+            const terms = document.getElementById('terms').checked;
+
+            // Email pattern validation
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+            // Clear previous errors
+            document.getElementById('usernameError').textContent = '';
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('phoneError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
+            document.getElementById('cpasswordError').textContent = '';
+            document.getElementById('termsError').textContent = '';
+
+            // Username validation
+            if (username === "") {
+                document.getElementById('usernameError').textContent = "Username is required";
+                isValid = false;
+            }
+
+            // Email validation
+            if (email === "" || !emailPattern.test(email)) {
+                document.getElementById('emailError').textContent = "Please enter a valid email";
+                isValid = false;
+            }
+
+            // Phone validation (example: 10 digits)
+            const phonePattern = /^[0-9]{10}$/;
+            if (phone === "" || !phonePattern.test(phone)) {
+                document.getElementById('phoneError').textContent = "Please enter a valid 10-digit phone number";
+                isValid = false;
+            }
+
+            // Password validation (minimum 8 characters)
+            if (password === "") {
+                document.getElementById('passwordError').textContent = "Password is required";
+                isValid = false;
+            } else if (password.length < 8) {
+                document.getElementById('passwordError').textContent = "Password must be at least 8 characters";
+                isValid = false;
+            }
+
+            // Confirm Password validation
+            if (cpassword === "") {
+                document.getElementById('cpasswordError').textContent = "Please confirm your password";
+                isValid = false;
+            } else if (password !== cpassword) {
+                document.getElementById('cpasswordError').textContent = "Passwords do not match";
+                isValid = false;
+            }
+
+            // Terms checkbox validation
+            if (!terms) {
+                document.getElementById('termsError').textContent = "You must agree to the terms and policy";
+                isValid = false;
+            }
+
+            // Return the final validation state
+            return isValid;
+        }
+    </script>
+</body>
+
+</html>

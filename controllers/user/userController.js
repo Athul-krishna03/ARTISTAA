@@ -3,23 +3,66 @@ const { assign } = require("nodemailer/lib/shared");
 const User=require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
-
 const nodemailer=require("nodemailer");
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt");
 const { session } = require("passport");
+
+const getProducts = async (req, res) => {
+    const { sort } = req.query;
+    let sortOption = {};
+
+    switch (sort) {
+        case "az":
+            sortOption = { productName: 1 };
+            break;
+        case "za":
+            sortOption = { productName: -1 };
+            break;
+        case "priceLow":
+            sortOption = { salePrice: 1 };
+            break;
+        case "priceHigh":
+            sortOption = { salePrice: -1 };
+            break;
+        case "popularity":
+            sortOption = { rating: -1 };
+            break;
+        default:
+            sortOption = {}; 
+    }
+
+    try {
+        const products = await Product.find().sort(sortOption);
+        
+        if (req.headers.accept && req.headers.accept.includes("application/json")) {
+            return res.json({ products });
+        }
+
+        
+        res.render("home", { products });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 const loadHomepage=async (req,res) => {
     try {
-        const user=req.session.user;
+        const userId=req.session.user;
         const categories = await Category.find({isListed:true});
         let productData = await Product.find({isBlocked:false,category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}});
         
         productData.sort((a,b)=>new Date(b.createdOn)- new Date(a.createdOn));
         // productData = productData.slice(0);
-        if(user){
-            const userData= await User.findOne({username:user.username});
-            // console.log(user);
-            return res.render("home",{user:userData,products:productData});
+        if(userId){
+            const userData= await User.findById(userId);
+            if(!userData.isAdmin){
+                return res.render("home",{user:userData,products:productData});
+            }else{
+                return res.render("home",{products:productData});
+            }
+            
         }else{
             return res.render("home",{products:productData});
         }
@@ -81,10 +124,9 @@ const signup=async (req,res) => {
     
     try {
       
-        const {username,email,phone,password,cPassword}=req.body;
-       
-       
-        if(password != cPassword){
+        const {username,email,phone,password,cpassword}=req.body;
+        console.log(password,cpassword);
+        if(password != cpassword){
             return res.render("signup",{message:"pass not match"})
         }
        
@@ -226,7 +268,7 @@ const login=async (req,res) => {
             return res.render("login",{message:"Incorrect password"});
         }
 
-        req.session.user=findUser;
+        req.session.user=findUser._id;
         
         
         res.redirect("/");
@@ -239,18 +281,25 @@ const login=async (req,res) => {
 const logout=async (req,res) => {
     try {
         
-         req.session.destroy((err)=>{
-            if(err){
-                console.log(err);
-                return res.redirect("/pageNotFound")
-                    
-            }
-        });
+         req.session.user=null;
         return res.redirect("/");
        
     } catch (error) {
         console.log(error);
         
+    }
+}
+
+const getProductView = async (req,res) => {
+    
+    try {
+        const userId=req.session.user;
+        const userData = await User.findById(userId);
+        const id=req.query.id;
+        const productData = await Product.findById(id);
+        return res.render("productDetials",{user:userData,data:productData});
+    } catch (error) {
+        console.log("productView Error",error);
     }
 }
 
@@ -264,5 +313,7 @@ module.exports={
     resendOtp,
     loadLogin,
     login,
-    logout
+    logout,
+    getProducts,
+    getProductView
 }

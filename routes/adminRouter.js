@@ -6,6 +6,8 @@ const customerController=require("../controllers/admin/customerController");
 const categoryController=require("../controllers/admin/categoryControllers");
 const brandController = require("../controllers/admin/brandControllers");
 const productController=require("../controllers/admin/productControllers");
+const orderController=require("../controllers/admin/orderControllers");
+
 const multer = require("multer");
 const storage = require("../helpers/multer");
 const uploads = multer({storage:storage});
@@ -15,7 +17,7 @@ const uploads = multer({storage:storage});
 router.get("/pageerror",adminController.pageerror)
 router.get("/login",adminController.loadlogin);
 router.post("/login",adminController.login);
-router.get("/",adminController.loadDashboard);
+router.get("/",auth.adminAuth,adminController.loadDashboard);
 router.get("/logout",adminController.logout);
 
 //customer routes
@@ -48,6 +50,9 @@ router.get("/blockProduct",auth.adminAuth,productController.blockProduct);
 router.get("/editProduct",auth.adminAuth,productController.getEditProduct)
 router.post("/editProduct",auth.adminAuth,uploads.array("images",4),productController.editProduct);
 router.post("/deleteImage",auth.adminAuth,productController.deleteSingleImage);
+
+
+router.get("/orders",auth.adminAuth,orderController.getOrderDetails)
 
 
 

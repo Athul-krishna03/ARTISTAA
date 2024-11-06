@@ -1,0 +1,423 @@
+:root {
+  --main_clr:#5B5B5B;
+  --banner_clr:#65FBF6;
+  --w_clr:#FFFFFF;
+  --blk_clr:#0A0A0A;
+  --lgt_clr:#808080;  
+  --red_clr:#F05357;
+  --grn_clr:#5CB847;
+  
+}
+
+.banner_cnt h2 {
+  color:var(--banner_clr);
+}
+
+.banner_cnt .button{
+  color:var(--blk_clr);
+  background-color:var(--w_clr);
+}
+
+.page_banner .banner_cnt h3 {
+   color:var(--w_clr);
+}
+
+.btab_tt h5 {
+   color:var(--red_clr);   
+}
+
+.off {
+  color:var(--grn_clr); 
+}
+
+.cnt_btn_item p {
+  color:var(--main_clr);
+}
+
+.btab_inner .button {
+    border-color: var(--blk_clr);
+    background: var(--blk_clr);
+}
+
+    @media screen and (min-width: 750px) {
+
+      :root {
+       
+       
+        
+        --ds_max_viewport: 1920;
+        --ds_min_viewport: 750;
+        --ds_max_viewport_px: 1920px;
+        --ds_min_viewport_px: 750px;
+
+        --font-body-family:Lexend;
+        --font-heading-family: 'Lexend',sans-serif;
+          
+          /*60px*/
+          
+          
+          
+          --h2_size: min(calc(38px + (60 - 38) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 60px);
+      
+          /*48px*/
+          
+          
+          
+          --h3_size: min(calc(28px + (48 - 28) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 48px);
+  
+          /*38px*/
+          
+          
+          
+          --h3s_size: min(calc(18px + (38 - 18) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 38px);
+
+          --h3ss_size: min(calc(18px + (38 - 18) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 38px);
+      
+        /*30px*/
+          
+          
+          
+          --h4_size: min(calc(20px + (30 - 20) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 30px);
+
+          /*24px*/
+          
+          
+          
+          --h5_size: min(calc(18px + (24 - 18) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 24px);
+           
+           /*22px*/
+          
+          
+          
+          --h6_size: min(calc(17px + (22 - 17) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 22px);
+    
+
+          /*20px*/
+          
+          
+          
+          --p_size: min(calc(16px + (20 - 16) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 20px);          
+
+          /*18px*/
+          
+          
+          
+          --ps_size: min(calc(15px + (18 - 15) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 18px);
+
+
+          /*16px*/
+          
+          
+          
+          --pss_size: min(calc(14px + (16 - 14) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 16px);
+
+          /*16px main*/
+          
+          
+          
+          --pm_size: min(calc(14px + (16 - 14) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 16px);
+          
+          
+      }
+        
+          h2 {
+            font-size:var(--h2_size) !important;
+          }
+          
+          p {
+            font-size: var(--p_size);
+          }
+
+          .button , .mailbox input.button,.article-template .button {
+            font-size:var(--p_size) !important;
+          }
+
+          h3 {
+            font-size:min(38px,var(--h3_size)) !important;
+          }
+
+          h4 {
+            font-size:min(30px,var(--h4_size)) !important;
+          }
+          
+          .autho p,.link_btn a {
+            font-size:min(18px,var(--ps_size)) !important;
+          }          
+          .crt_name .subtt , .announcement-bar__message a {
+            font-size:14px !important;
+          }
+          .insta_inner .inner_btn a , .trheading h4 , .dsubm li details .header__submenu .header__menu-item, .predictive-search__item-heading,.content_side .blg_head {
+            font-size:var(--p_size) !important;
+          }
+          .user_name p {
+            font-size:10px !important;
+          }
+          .announcement-bar__message p, .elinks a, .foo_info p , .foo_info a, .copyright_sec p , .content_side p, .content_side a {
+            font-size:var(--pss_size) !important;
+          }
+          .multicolumn-card__info .rte p, .mailbox .newcontent p,.mailbox input, .mitem_inner .menu_links a, .exp_crt_item p  {
+            font-size:var(--ps_size) !important;
+          }
+          .dsubm li .header__menu-item {
+             font-size: var(--h5_size) !important;
+          } 
+          .predictive-search__heading {
+            font-size: var(--h5_size) !important;
+          }
+          .prod_tt p,.prod_info p {
+                font-size:var(--pm_size) !important;
+          }
+          .prod_infos .price,.prod_infos .price-item {
+            font-size: var(--h6_size) !important;
+          }
+          .product__accordion .accordion__title, .accordion__content p, .rvw_head p,.pro_shares p, .crt_cnt p {
+            font-size:var(--pss_size) !important;
+          }
+          .similar_products .bst_tt h3, .tips_blog .bst_tt h3 {
+            font-size:var(--h5_size) !important;
+          }
+          .product__title h1 {  
+            font-size: var(--h5_size) !important;  
+          }
+
+        
+          
+      /* new bundle page*/
+
+          h6 {
+            font-size:var(--h6_size) !important; 
+          }
+          .bradcrumbs_txt p, .ttl_subttl p , .pro_tt p, .tprice p, .opt_tt p {
+           font-size:var(--pss_size) !important; 
+          }
+          .cnt_tt p {
+            font-size:14px !important;
+          }          
+          .cnt_btn_item h6, .box_cart .button , .ttl_price .pprice  {
+              font-size:var(--ps_size) !important;
+          }          
+          .cnt_btn_item p , .prew_tt p, .pro_info p  {
+            font-size:13px !important;
+          }          
+          .page_banner .banner_desc p {
+            font-size:15px !important;            
+          }          
+          .color_selection .cnt_tt p ,.preview_box h6 {
+            font-size:16px !important;
+          }
+         .prew_item button {
+           font-size:12px !important;
+         }
+           
+      /*end bundle page*/
+
+      .indi_bundle_item h3 {
+            font-size: min(36px,var(--h3s_size))!important;
+        }
+        .static-subtitle {
+        font-size: min(30px,var(--h4_size)) !important;
+      }            
+          
+          
+}
+
+
+ @media screen and (max-width: 749px) {
+
+      :root {
+          --main_clr:#5B5B5B;
+          --banner_clr:#65FBF6;
+          --w_clr:#FFFFFF;
+          --blk_clr:#0A0A0A;
+          --lgt_clr:#808080;  
+          --red_clr:#F05357;
+          --grn_clr:#5CB847;
+  
+       
+       
+        
+        --ds_max_viewport: 750;
+        --ds_min_viewport: 320;
+        --ds_max_viewport_px: 750px;
+        --ds_min_viewport_px: 320px;
+
+          /*34 for 375*/ 
+          
+          
+          
+          --h2b_size: min(calc(32.25px + (46 - 32.25) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 46px);
+   
+       /*30 for 375*/ 
+          
+          
+          
+          --h2_size: min(calc(28.25px + (42 - 28.25) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 42px);
+
+        /*26px  for 375 */
+          
+          
+          
+          --h3_size: min(calc(25.2px + (32 - 25.2) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 32px);
+
+          --h3ss_size: min(calc(25.2px + (32 - 25.2) * ((min(81.4vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 32px);
+  
+        /*24px for 375*/
+          
+          
+          
+          --h4_size: min(calc(23.4px + (28 - 23.4) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 28px);
+          
+       /*20px for 375 */
+          
+          
+          
+          --h5_size: min(calc(19.5px + (24 - 19.5) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 24px);
+
+         /*19px for 375 */
+          
+          
+          
+          --h6_size: min(calc(18.5px + (22 - 18.5) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 22px);
+          
+        /*20px*/
+          
+          
+          
+          --p_size: min(calc(15.5px + (20 - 15.5) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 20px);
+
+          /*20px*/
+          
+          
+          
+          --pp_size: min(calc(14.5px + (19 - 14.5) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 19px);
+          
+        
+        /*16px*/
+          
+          
+          
+          --pss_size: min(calc(12.7px + (16 - 12.7) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 16px);
+
+        /*14px for 375px */
+          
+          
+          
+          --p14: min(calc(13.75px + (16 - 13.75) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 16px);
+
+        /*18px for 375px */
+          
+          
+          
+          --f18: min(calc(17.42px + (22 - 17.42) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 22px);
+
+        /*16px for 375px */
+          
+          
+          
+          --f16: min(calc(15.75px + (18 - 15.75) * ((min(100vw, var(--ds_max_viewport_px)) - var(--ds_min_viewport_px)) / (var(--ds_max_viewport) - var(--ds_min_viewport)))), 18px);
+          
+          
+       }
+
+       .page_banner_item .banner_cnt h2 {
+         font-size:var(--h2_size);
+       }
+       h3 {
+         font-size:var(--h3_size) !important; 
+       }     
+       .pro_info p {
+         font-size:var(--pss_size) !important;
+       }
+       .tprice p ,.ttl_price p {
+         font-size:var(--h6_size) !important;
+       }
+      .banner_cnt h2 {
+        font-size: var(--h2b_size) !important;
+      }
+      .banner_cnt_inner .button , .blog_tt .link_btn p, .trheading h4 {
+        font-size:18px !important;
+      }
+      h4 {
+        font-size: var(--h4_size) !important;
+        line-height:1.15 !important;
+      }
+      .autho p {
+        font-size:min(21px,var(--h5_size)) !important;
+        line-height: 1.1;
+      }
+      .crt_name .subtt, .mailbox input {        
+        font-size:var(--p_size) !important;        
+      }       
+      .join_comm h3,.newheading h3 {
+        font-size: var(--h4_size) !important;
+      }       
+      .coll_tt h3, .join_tt h3, .blog_tt h3,.trtitle h3 {
+        font-size: var(--h2_size) !important;
+      }
+      .coll_tt p , .button, .join_comm p, .blog_tt p, .arr_tt p, .mailbox input.button, .blg_head,.article-template .button {
+         font-size: var(--h5_size) !important;
+      }
+      .foo_item .mitem_inner a {           
+        font-size:var(--p_size) !important;   
+      }
+      .acoll_lists .acoll_item a,.content_side a,.elinks a {
+        font-size:var(--p_size) !important;   
+      }
+
+
+      .bradcrumbs_txt p {
+        font-size:var(--p14) !important;
+      }
+      .product__title h1, .mprice .price, .mprice .price-item {
+        font-size:var(--f18) !important;
+      }
+      .pro_extra .eitem .stt,.subs_check p,.product_icons .trcontent p,.product__accordion .accordion__title {
+        font-size:var(--f16) !important;
+      }
+
+      /* individual creators */    
+      h2 {
+          font-size: var(--h2_size) !important;
+      }
+      .indi_bundle_item h3 {
+        font-size: var(--h5_size) !important;
+      }
+      .indi_bundle_item .arr_item .arr_tt p , .product_lists .arr_item .arr_tt p {
+        font-size:var(--p_size) !important; 
+      }
+      .faq_que .faq_btn h6 {
+        font-size:var(--f16) !important;        
+      }
+
+
+      .static-subtitle {
+        font-size: min(28px,var(--h4_size)) !important;
+      }
+
+
+      }
+
+
+
+      h5,.mitem_inner a , .rte h3 {
+          font-size: min(24px, var(--h5_size)) !important;
+      }
+      h6 {
+          font-size: var(--h6_size) !important;
+      }    
+      p {
+        font-size: var(--p_size);
+      }
+      .cart-notification__heading {
+        font-size: var(--h6_size) !important;
+      }
+      .cart-notification-product__name {
+        font-size: var(--p_size) !important;
+      }
+      .main-page-title.page-title {
+        font-size: min(48px,var(--h3_size)) !important;
+      }
+      .static-subtitle,.rte h2 {
+        font-size: min(28px,var(--h4_size)) !important;
+      }
+      

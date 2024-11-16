@@ -4,13 +4,16 @@ const User=require("../../models/userSchema");
 const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const nodemailer=require("nodemailer");
+const Cart = require("../../models/cartSchema");
+const Banner = require("../../models/Banner");
 const env=require("dotenv").config();
 const bcrypt=require("bcrypt");
 const { session } = require("passport");
 
 const getProducts = async (req, res) => {
-    const { sort } = req.query;
+    const { sort, category } = req.query; 
     let sortOption = {};
+    let filterOption = {};
 
     switch (sort) {
         case "az":
@@ -32,14 +35,16 @@ const getProducts = async (req, res) => {
             sortOption = {}; 
     }
 
+    if (category) {
+        filterOption.category = category;
+    }
+
     try {
-        const products = await Product.find().sort(sortOption);
+        const products = await Product.find(filterOption).sort(sortOption);
         
         if (req.headers.accept && req.headers.accept.includes("application/json")) {
             return res.json({ products });
         }
-
-        
         res.render("home", { products });
     } catch (error) {
         console.error("Error fetching products:", error);
@@ -47,8 +52,38 @@ const getProducts = async (req, res) => {
     }
 };
 
+
 const loadHomepage=async (req,res) => {
     try {
+        
+        const userId=req.session.user;
+        const categories = await Category.find({isListed:true});
+        const banners  = await Banner.find();
+        let productData = await Product.find({isBlocked:false,category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}});
+        
+        productData.sort((a,b)=>new Date(b.createdOn)- new Date(a.createdOn));
+        // productData = productData.slice(0);
+        if(userId){
+            const userData= await User.findById(userId);
+            if(!userData.isAdmin){
+                return res.render("home",{products:productData,banners:banners,categories:categories});
+            }else{
+                return res.render("home",{products:productData,banners:banners,categories:categories});
+            }
+            
+        }else{
+            return res.render("home",{products:productData,banners:banners,categories:categories});
+        }
+       
+    } catch (error) {
+        console.log(error,"Home not found");
+        res.status(500).send("Server error")
+        
+    }
+}
+const loadShopPage=async (req,res) => {
+    try {
+        
         const userId=req.session.user;
         const categories = await Category.find({isListed:true});
         let productData = await Product.find({isBlocked:false,category:{$in:categories.map(category=>category._id)},quantity:{$gt:0}});
@@ -58,13 +93,13 @@ const loadHomepage=async (req,res) => {
         if(userId){
             const userData= await User.findById(userId);
             if(!userData.isAdmin){
-                return res.render("home",{user:userData,products:productData});
+                return res.render("shop",{products:productData,categories:categories});
             }else{
-                return res.render("home",{products:productData});
+                return res.render("shop",{products:productData,categories:categories});
             }
             
         }else{
-            return res.render("home",{products:productData});
+            return res.render("shop",{products:productData,categories:categories});
         }
        
     } catch (error) {
@@ -131,7 +166,7 @@ const signup=async (req,res) => {
         }
        
        
-        const findUser= await User.findOne({email});
+        const findUser= await User.findOne({email:email});
         console.log(findUser)
         if(findUser){
             return res.render("signup",{message:"User with this email already exist"});
@@ -146,6 +181,7 @@ const signup=async (req,res) => {
 
         req.session.userOtp=otp;
         req.session.user={username,email,phone,password};
+        console.log(req.session.user)
 
         res.render("verify-otp");
         console.log("OTP sent",otp);
@@ -201,7 +237,7 @@ const verifyOtp=async (req,res) => {
             })
 
             await saveUserData.save();
-            req.session.user=saveUserData;
+            req.session.user=saveUserData._id;
             console.log(saveUserData)
             res.json({success:true,redirectUrl:"/"})
         }else{
@@ -238,20 +274,25 @@ const resendOtp=async (req,res) => {
     }
 }
 
-const loadLogin=async (req,res) => {
+const loadLogin = async (req, res) => {
     try {
-        if(!req.session.user){
-           return res.render("login");
-
-        }else{
-            return res.redirect("/")
+        
+        if (req.session.user) {
+            const user = await User.findById(req.session.user);
+            if (user && user.isBlocked) {
+                req.session.user=null;  
+                return res.render("login", { message: "User is blocked" });
+            }
+            return res.redirect("/");
+        } else {
+            return res.render("login");
         }
-       
     } catch (error) {
-        console.log(error)
-       return res.redirect("/pageNotFound");
+        console.log(error);
+        return res.redirect("/pageNotFound");
     }
-}
+};
+
 const login=async (req,res) => {
     try {
         const {email,password}=req.body;
@@ -293,11 +334,10 @@ const logout=async (req,res) => {
 const getProductView = async (req,res) => {
     
     try {
-        const userId=req.session.user;
-        const userData = await User.findById(userId);
+       
         const id=req.query.id;
         const productData = await Product.findById(id);
-        return res.render("productDetials",{user:userData,data:productData});
+        return res.render("productDetials",{data:productData});
     } catch (error) {
         console.log("productView Error",error);
     }
@@ -305,6 +345,7 @@ const getProductView = async (req,res) => {
 
 module.exports={
     loadHomepage,
+    loadShopPage,
     loadSignup,
     loadShopping,
     pageNotFound,

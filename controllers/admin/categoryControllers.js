@@ -19,7 +19,8 @@ const categoryInfo = async (req,res) => {
             cat:categoryData,
             totalCategories:totalCategories,
             totalPages:totalPages,
-            currentPage:page
+            currentPage:page,
+            activePage: 'category'
         })
         
     } catch (error) {
@@ -141,7 +142,7 @@ const getEditCategory=async (req,res) => {
         const id = req.query.id;
         const category=await Category.findById({_id:id});
         if(category){
-            res.render("edit-category",{category:category})
+            res.render("edit-category",{category:category,activePage: 'category'})
         }
     } catch (error) {
         console.log(error);
@@ -149,28 +150,28 @@ const getEditCategory=async (req,res) => {
         
     }
 }
-const EditCategory = async (req,res) => {
+const EditCategory = async (req, res) => {
     try {
-        const id=req.query.id
-        console.log(id)
-        const {name,description}=req.body;
-        console.log(name,description);
-        const existingCategory = await Category.findOne({name:name});
-        if(existingCategory){
-            return res.status(400).json({error:"Category exists.please choose another name"})
-        }
-       const updateCategory=await Category.findByIdAndUpdate({_id:id},{$set:{name:name,description:description}},{new:true});
-       if(updateCategory){
-          return res.redirect("/admin/category");
-       }else{
-        return res.status(404).json({error:"Category not found"})
-       }
+      const id = req.query.id;
+      const { name, description } = req.body;
+  
+      const existingCategory = await Category.findOne({name:name});
+      if (existingCategory) {
+        return res.status(400).json({ status: false, message: "Category exists. Please choose another name" });
+      }
+
+      const updateCategory = await Category.findByIdAndUpdate(id, { $set: { name: name, description: description } }, { new: true });
+      if (updateCategory) {
+         return res.json({ status: true, message: "Category updated successfully" });
+      } else {
+        return res.json({ status: false, message: "Category not found" });
+      }
     } catch (error) {
-        console.log(error);
-        res.status(500).json({error:"Internal server error"});
-        
+      console.error(error);
+      res.status(500).json({ status: false, message: "Internal server error" });
     }
-}
+  };
+  
 
 module.exports={
     categoryInfo,

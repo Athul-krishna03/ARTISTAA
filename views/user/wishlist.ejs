@@ -1,0 +1,238 @@
+<%- include("../partials/user/header") %>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .wishlist-item {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            transition: background-color 0.2s;
+        }
+
+        .wishlist-item:hover {
+            background-color: #f3f3f3;
+        }
+
+        .wishlist-item img {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+            object-fit: cover;
+            margin-right: 20px;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-details h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #555;
+        }
+
+        .item-details p {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
+
+        .item-details .price {
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .btn-add-to-cart {
+            background-color: #28a745;
+            color: #ffffff;
+        }
+
+        .btn-add-to-cart:hover {
+            background-color: #218838;
+        }
+
+        .btn-remove {
+            background-color: #dc3545;
+            color: #ffffff;
+        }
+
+        .btn-remove:hover {
+            background-color: #c82333;
+        }
+
+        .empty-wishlist {
+            text-align: center;
+            padding: 50px 0;
+            color: #999;
+        }
+    </style>
+
+    <body>
+
+        <main>
+            <div class="container">
+                <h1>Your Wishlist</h1>
+
+                <% if (wishlistItems && wishlistItems.products.length> 0) { %>
+                    <% wishlistItems.products.forEach(item=> { %>
+                        <div class="wishlist-item">
+                            <img src="/uploads/re-image/<%= item.productId.productImage[0]  %>"
+                                alt="<%= item.productId.productName %>">
+                            <div class="item-details">
+                                <h4>
+                                    <%= item.productId.productName %>
+                                </h4>
+                                <p>
+                                    <%= item.productId.description %>
+                                </p>
+                                <div class="price">₹<%= item.productId.salePrice %>
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-add-to-cart" onclick="addToCart('<%= item.productId._id%>')">Add
+                                    to
+                                    Cart</button>
+                                <button class="btn btn-remove"
+                                    onclick="removeFromWishlist('<%= item.productId._id %>')">Remove</button>
+                            </div>
+                        </div>
+                        <% }); %>
+                            <% } else { %>
+                                <div class="empty-wishlist">
+                                    <p>Your wishlist is empty. Start adding items you love!</p>
+                                </div>
+                                <% } %>
+            </div>
+        </main>
+
+            <script>
+
+
+                async function addToCart(itemId) {
+                    console.log(itemId)
+                    try {
+                        console.log("entered")
+                        const response = await fetch(`/addCart?productId=${itemId}&quantity=1`, {
+                            method: 'get',
+                            headers: {
+                                "Accept": "application/json",
+                                'Content-Type': 'application/json'
+                            },
+
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Added to Cart!',
+                                text: 'Item added to cart successfully.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+
+
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed to Add',
+                                text: result.message || 'Failed to add item to cart.',
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error adding item to cart:", error);
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while adding the item to the cart.',
+                        });
+                    }
+                }
+
+                async function removeFromWishlist(itemId) {
+                    try {
+                        const response = await fetch('/removeWishlist', {
+                            method: 'POST',
+                            headers: {
+                                "Accept": "application/json",
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ productId: itemId })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Removed from Wishlist!',
+                                text: 'Item removed from wishlist successfully.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                location.reload(); 
+                            });
+
+
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed to Remove',
+                                text: result.message || 'Failed to remove item from wishlist.',
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error removing item from wishlist:", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An error occurred while removing the item from the wishlist.',
+                        });
+                    }
+                }
+
+            </script>
+    </body>
+
+    </html>
+
+        <%- include("../partials/user/footer") %>    

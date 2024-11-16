@@ -45,8 +45,20 @@
                                                 aria-selected="true"><i class="fi-rs-user mr-10"></i>Account details</a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="page-login-register.html"><i
-                                                    class="fi-rs-sign-out mr-10"></i>Logout</a>
+                                            <a class="nav-link" id="wallet-tab" data-bs-toggle="tab" href="#wallet"
+                                                role="tab" aria-controls="wallet" aria-selected="true"><i
+                                                    class="fas fa-wallet mr-10"></i>Wallet</a>
+
+                                        </li>
+
+                                        <li class="nav-item">
+                                            <button class="nav-link" style="cursor: pointer;
+                                            background-color: white;
+                                            border: 0px;
+                                            margin-left: 14px;" onclick="logout()"><i
+                                                    class="fi-rs-sign-out mr-10"></i>Logout</a></button>
+
+
                                         </li>
                                     </ul>
                                 </div>
@@ -104,7 +116,7 @@
                                                                                     order.orderedItems.length %> item(s)
                                                                         </td>
                                                                         <td>
-                                                                            <a href="/order-details?id=<%= order._id %>"
+                                                                            <a href="/order-details?id=<%= order.orderId %>"
                                                                                 class="btn-small d-block">View</a>
                                                                             <% if(order.status !="Cancelled" ) {%>
                                                                                 <a href="#"
@@ -140,17 +152,17 @@
                                                     the confirmation email you should have received.</p>
                                                 <div class="row">
                                                     <div class="col-lg-8">
-                                                        <form class="contact-form-style mt-30 mb-50" action="#"
-                                                            method="post">
+                                                        <form class="contact-form-style mt-30 mb-50"
+                                                            action="/order-details" method="get">
                                                             <div class="input-style mb-20">
                                                                 <label>Order ID</label>
-                                                                <input name="order-id"
+                                                                <input name="id"
                                                                     placeholder="Found in your order confirmation email"
                                                                     type="text" class="square">
                                                             </div>
                                                             <div class="input-style mb-20">
                                                                 <label>Billing email</label>
-                                                                <input name="billing-email"
+                                                                <input name="email"
                                                                     placeholder="Email you used during checkout"
                                                                     type="email" class="square">
                                                             </div>
@@ -265,6 +277,57 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="tab-pane fade" id="wallet" role="tabpanel" aria-labelledby="wallet-tab">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5>Wallet</h5>
+                                            </div>
+                                            <div class="card-body">
+    
+                                                <div class="wallet-balance mb-4">
+                                                    <h6>Your Wallet Balance:</h6>
+                                                    <p class="balance-amount">₹<%=wallet.balance %></p>
+                                                </div>
+                                                
+                                               
+                                                <h6>Transaction History:</h6>
+                                                <div class="table-responsive">
+                                                    <table class="table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Date</th>
+                                                                <th>Type</th>
+                                                                <th>Amount</th>
+                                                                <th>Transaction Id</th>
+                                                                <th>Status</th>
+                                                                
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <% if (wallet && wallet.transactions.length > 0) { %>
+                                                                <% wallet.transactions.forEach(transaction => { %>
+                                                                    <tr>
+                                                                        <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+                                                                        <td><%= transaction.type %></td>
+                                                                        <td>₹<%= transaction.amount %></td>
+                                                                        <td><%= transaction._id || '-' %></td>
+                                                                        <td><%= transaction.status %></td>
+                                                                        
+                                                                    </tr>
+                                                                <% }); %>
+                                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="6" class="text-center">No transactions available</td>
+                                                                </tr>
+                                                            <% } %>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+
                                 </div>
                             </div>
                         </div>
@@ -274,6 +337,33 @@
         </section>
     </main>
     <script>
+        async function logout() {
+            const confirmation = await Swal.fire({
+                title: "Are you sure?",
+                text: "Do you really want to log out?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes",
+                cancelButtonText: "No"
+            });
+
+            if (confirmation.isConfirmed) {
+                try {
+                    const response = await fetch("/logout", {
+                        method: "GET"
+                    });
+                    if (response.ok) {
+                        window.location.href = "/login";
+                    } else {
+                        Swal.fire("Error", "Failed to log out. Please try again.", "error");
+                    }
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    Swal.fire("Error", "Something went wrong. Please try again.", "error");
+                }
+            }
+        }
+
 
         async function cancelOrder(orderId) {
             const confirmation = await Swal.fire({
@@ -303,10 +393,10 @@
                             text: `Order #${data.orderId} has been successfully cancelled.`,
                             timer: 3000,
                             showConfirmButton: false,
-                            
+
                         });
-                         return location.reload();
-                       
+                        return location.reload();
+
                         document.getElementById(`order-${orderId}`).remove();
                     } else {
                         await Swal.fire({

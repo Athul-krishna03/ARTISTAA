@@ -32,6 +32,9 @@ const productSchema= new Schema({
         type:Number,
         default:0
     },
+    reorderLevel:{ 
+        type: Number, 
+        default: 10 },
     color:{
         type:String,
        

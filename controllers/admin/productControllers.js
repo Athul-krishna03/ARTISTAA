@@ -10,7 +10,7 @@ const getProductAddPage= async (req,res) => {
     try {
         const category = await Category.find({isListed:true});
         const brand = await Brand.find({isBlocked:false});
-        res.render("product-add",{category:category,brand:brand})
+        res.render("product-add",{category:category,brand:brand,activePage: 'addProducts'})
     } catch (error) {
         console.log("error in product adding",error);
     }
@@ -104,7 +104,8 @@ const getAllProducts =async (req,res) => {
               currentPage:page,
               totalPages:Math.ceil(count/limit),
               cat:category,
-              brand:brand
+              brand:brand,
+              activePage: 'products'
            })
         }else{
             res.render("/pageerror")
@@ -187,7 +188,8 @@ const getEditProduct = async (req,res) => {
         res.render("edit-product",{
             product:product,
             category:category,
-            brand:brand
+            brand:brand,
+            activePage: 'products'
         });
     } catch (error) {
         // res.redirect("/pageerror")
@@ -258,8 +260,31 @@ const deleteSingleImage = async (req,res) => {
     }
 }
 
+const stockDetials = async (req,res) => {
+    try {
+        const products = await Product.find().populate("category")
+        return res.render("stockManagment",{products:products,activePage: 'stock'})
+    } catch (error) {
+        console.log("stock update error",error);
+        
+    }
+}
 
+const updateStock = async (req, res) => {
+    const { productId, newStock } = req.body;
+    const stock = parseInt(newStock);
 
+    try {
+        const update = await Product.findByIdAndUpdate(productId, { $set: { quantity: stock } });
+        if (update) {
+            res.json({ success: true, message: 'Stock updated successfully' });
+        } else {
+            res.json({ success: false, message: 'Failed to update stock' });
+        }
+    } catch (err) {
+        res.json({ success: false, message: 'Error occurred during stock update' });
+    }
+};
 module.exports={
     getProductAddPage,
     addProducts,
@@ -269,5 +294,8 @@ module.exports={
     blockProduct,
     getEditProduct,
     editProduct,
-    deleteSingleImage
+    deleteSingleImage,
+    stockDetials,
+    updateStock
+
 }

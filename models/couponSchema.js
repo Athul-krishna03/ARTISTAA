@@ -2,7 +2,7 @@ const mongoose=require("mongoose");
 const {Schema}=mongoose;
 
 const couponSchema= new Schema({
-    name:{
+    code:{
         type:String,
         required:true,
         unique:true
@@ -15,7 +15,7 @@ const couponSchema= new Schema({
     },expireOn:{
         type:Date,
         default:Date.now
-    },offerPrice:{
+    },offerPercentage:{
         type:Number,
         required:true
     },minimumPrice:{
@@ -32,8 +32,6 @@ const couponSchema= new Schema({
     
 })
 
-const coupon=mongoose.model("coupon",couponSchema);
 
-module.exports={
-    coupon
-}
+
+module.exports=mongoose.model("Coupon",couponSchema);

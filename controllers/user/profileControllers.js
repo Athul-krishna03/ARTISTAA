@@ -6,6 +6,7 @@ const session = require("express-session");
 const { get } = require("mongoose");
 const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
+const Wallet = require("../../models/walletSchema");
 
 
 
@@ -160,30 +161,17 @@ const getUserDashboard = async (req,res) => {
         console.log(order)
         const user = await User.findById({_id:req.session.user})
         const addresses = await Address.findOne({ userId: req.session.user }) || [];
-        res.render("userDashboard",{addresses:addresses.address,user:user,orders:order})
+        const wallet = await Wallet.findOne({ userId: req.session.user }).populate("transactions.orderId");
+        res.render("userDashboard",{addresses:addresses.address,user:user,orders:order,wallet:wallet})
     } catch (error) {
         console.log(error)
     }
 }
 
-// const addAddress = async (req,res) => {
-//     try {
-//         const user = req.session.user;
-//         if(!user){
-//             return res.status(401).json({ message: 'Unauthorized access.' });
-//         }
-//         const {addressType,name,city,landMark,state,pincode,phone,altPhone}=req.body;
-//         const address = await Address.findOne({userId:user});
-//         address.address.push(addressData)
-        
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
 
 const loadAddAddress = async (req,res) => {
     try {
-        const user = req.session.user
+        const user = req.session.user;
         
         res.render("addressAdd",{user:user})
     } catch (error) {

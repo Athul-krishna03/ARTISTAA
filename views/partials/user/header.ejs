@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Evara - eCommerce HTML Template</title>
+    <title>ARTISTAA</title>
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,12 +12,12 @@
     <meta property="og:url" content="">
     <meta property="og:image" content="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=account_circle" />
 
-    <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="/uploads/banner/logoSVG.png">
-    <!-- Template CSS -->
+
     <link rel="stylesheet" href="evara-frontend/assets/css/main.css?v=3.4">
-    <!-- SweetAlert2 CDN -->
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
@@ -129,6 +129,9 @@
                                 <% if(locals.user){ %>
                                     <div class="header-action-icon-2">
                                         <a class="mini-cart-icon" href="/userProfile" style="width: 115px;">
+                                            <span class="material-symbols-outlined" style="margin: 10px;">
+                                                account_circle
+                                            </span>
                                             <span class="lable ml-0"><%= locals.user.username %></span>
                                         </a>
                                         <div class="cart-dropdown-wrap cart-dropdown-hm2 account-dropdown">
@@ -140,7 +143,7 @@
                                                     <a href=""><i class="fi fi-rs-shopping-bag mr-10"></i>Order Tracking</a>
                                                 </li>
                                                 <li>
-                                                    <a href=""><i class="fi fi-rs-heart mr-10"></i>My Wishlist</a>
+                                                    <a href="/wishlist"><i class="fi fi-rs-heart mr-10"></i>My Wishlist</a>
                                                 </li>
                                                 <li>
                                                     <a href=""><i class="fi fi-rs-settings mr-10"></i>Setting</a>
@@ -164,13 +167,13 @@
                                 <div class="header-action-icon-2">
                                     <a href="/wishlist">
                                         <img class="svgInject" alt="Evara" src="evara-frontend/assets/imgs/theme/icons/icon-heart.svg">
-                                        <span class="pro-count blue">0</span>
+                                        
                                     </a>
                                 </div>
                                 <div class="header-action-icon-2">
                                     <a class="mini-cart-icon" href="/cart">
                                         <img alt="Evara" src="evara-frontend/assets/imgs/theme/icons/icon-cart.svg">
-                                        <span class="pro-count blue">0</span>
+                                        <span class="pro-count blue"><%= cartCount%></span>
                                     </a>
                                 </div>
                             </div>
@@ -190,9 +193,9 @@
                             <nav>
                                 <ul>
                                     <li><a class="active" href="/">Home</a></li>
-                                    <li><a href="page-about.html">About</a></li>
-                                    <li><a href="">Shop</a></li>
-                                    <li><a href="#">Pages</a></li>
+                                    <li><a href="/about-us">About</a></li>
+                                    <li><a href="/shop">Shop</a></li>
+                                    <!-- <li><a href="#">Pages</a></li> -->
                                     <li><a href="">Contact</a></li>
                                 </ul>
                             </nav>

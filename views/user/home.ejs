@@ -1,328 +1,356 @@
 <%- include("../partials/user/header.ejs") %>
-  <style>
-    .filter-section {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 20px;
-    }
 
-    .sort-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+<style>
+ 
+  .art-gallery-section {
+    padding: 50px 0;
+    background-color: #f8f9fa;
+  }
 
-    .sort-label {
-      font-size: 1em;
-      font-weight: bold;
-      color: #333;
-    }
+  .sort-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+  }
 
-    .sort-dropdown {
-      padding: 10px 15px;
-      font-size: 1em;
-      font-weight: 500;
-      color: #555;
-      background-color: #f0f0f0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      outline: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+  .sort-label {
+    width: 100px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+    margin-right: 10px;
+    align-self: center;
+  }
 
-    .sort-dropdown:hover {
-      border-color: #888;
-    }
+  .sort-dropdown {
+    padding: 10px 15px;
+    font-size: 1em;
+    font-weight: 500;
+    color: #555;
+    background-color: #f0f0f0;
+    border: 0px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
 
-    .sort-dropdown:focus {
-      border-color: #555;
-      box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
-    }
+  .sort-dropdown:hover {
+    border-color: #888;
+  }
 
-    .sort-dropdown option {
-      padding: 10px;
-      background-color: #f0f0f0;
-      color: #333;
-    }
-  </style>
+  .sort-dropdown:focus {
+    border-color: #555;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+  }
 
-  <main class="main">
-    <section class="home-slider position-relative pt-50">
-      <div class="col-lg-12 col-md-6" style="padding: 0px 100px;">
-        <div class="single-slider-img single-slider-img-1">
-          <% if(locals.user){%>
-            <img class="animated slider-1-1" src="/uploads/banner/b2.jpg" alt="banner">
-            <% }else{%>
-              <img class="animated slider-1-1" src="/uploads/banner/b5.jpg" alt="banner">
-              <% } %>
+  .art-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 20px;
+  }
+
+  .art-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    position: relative;
+  }
+
+  .art-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .art-image {
+    position: relative;
+    padding-top: 100%;
+  }
+
+  .art-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .art-card:hover .overlay {
+    opacity: 1;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+  }
+
+  .action-buttons button {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .action-buttons button:hover {
+    background: #333;
+    color: white;
+  }
+
+  .art-details {
+    padding: 20px;
+  }
+
+  .category {
+    color: #666;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .title {
+    margin: 10px 0;
+    font-size: 1.2em;
+    color: #333;
+  }
+
+  .price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 10px;
+  }
+
+  .offer-price {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #f27a54;
+    margin-bottom: 5px;
+    text-align: left;
+  }
+
+  .original-price {
+    font-size: 1.2em;
+    color: #777;
+    text-decoration: line-through;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+
+  .discount-tag {
+    font-size: 1em;
+    font-weight: 600;
+    color: #fff;
+    background-color: #ff5e5b;
+    padding: 5px 10px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .stock {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .stock.in-stock {
+    color: green;
+  }
+
+  .stock.out-of-stock {
+    color: red;
+    font-weight: bold;
+  }
+
+  .no-products {
+    text-align: center;
+    padding: 50px;
+  }
+
+</style>
+
+<main class="main">
+
+
+  <section class="home-slider position-relative pt-50">
+    
+     <div class="hero-slider-1 dot-style-1 dot-style-1-position-1">
+        <% if(banners){%>
+        <% banners.forEach((banner)=>{ %>
+          <div class="single-hero-slider single-animation-wrap">
+            <div class="container">
+                <div class="row align-items-center slider-animated-1">
+                    <div class="col-lg-5 col-md-6">
+                        <div class="hero-slider-content-2">
+                            <h4 class="animated"><%= banner.description %></h4>
+                            <p class="animated">Save more with coupons & up to 70% off</p>
+                            <a class="animated btn btn-brush btn-brush-3" href="<%= banner.link %>"> Shop Now </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 col-md-6">
+                        <div class="single-slider-img single-slider-img-1">
+                            <img class="animated slider-1-1" src="/uploads/re-image/<%= banner.image %>" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% }) %>
+        <% } %>
+      </div>
+      <div class="slider-arrow hero-slider-1-arrow"></div>
+  </section>
+
+  <section class="sort-section">
+    <div class="container">
+      <div class="sort-container" style="display: flex; justify-content: space-between; width: 600px;">
+        
+        <div>
+          <label for="sortOptions" class="sort-label">Sort By:</label>
+          <select id="sortOptions" class="sort-dropdown">
+            <option value="">Select</option>
+            <option value="az">Name: A to Z</option>
+            <option value="za">Name: Z to A</option>
+            <option value="priceLow">Price: Low to High</option>
+            <option value="priceHigh">Price: High to Low</option>
+            <option value="popularity">Popularity</option>
+          </select>
+        </div>
+  
+        <div>
+          <label for="categoryFilter" class="sort-label">Category:</label>
+          <select id="categoryFilter" class="sort-dropdown">
+            <option value="">All Categories</option>
+            <% categories.forEach(category => { %>
+              <option value="<%= category._id %>"><%= category.name %></option>
+            <% }) %>
+          </select>
         </div>
       </div>
-    </section>
-    
+    </div>
+  </section>
+  
 
-    <section class="art-gallery-section">
-      <section class="filter-section">
-        <div class="container">
-          <div class="sort-container">
-            <label for="sortOptions" class="sort-label">Sort By:</label>
-            <select id="sortOptions" class="sort-dropdown">
-              <option value="">Select</option>
-              <option value="az">Name: A to Z</option>
-              <option value="za">Name: Z to A</option>
-              <option value="priceLow">Price: Low to High</option>
-              <option value="priceHigh">Price: High to Low</option>
-              <option value="popularity">Popularity</option>
-            </select>
-          </div>
-        </div>
-      </section>
-      <div class="container">
-        <div class="art-grid">
-          <% if (products && products.length> 0) { %>
-            <% products.forEach(product=> { %>
-              <div class="art-card">
-                <a href="/productDetails?id=<%= product._id %>" class="product-link">
-                  <div class="art-image">
-                    <% if (product.productImage && product.productImage.length> 0) { %>
-                      <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-                      <% } else { %>
-                        <img src="/path/to/placeholder-image.jpg" alt="No image available">
-                        <% } %>
-                          <div class="overlay">
-                            <div class="action-buttons">
-                              <!-- <button class="wishlist-btn" onclick="event.preventDefault(); window.location.href='/addToWhishList?id=<%= product._id %>'">
-                                <i class="fi-rs-heart"></i>
-                              </button> -->
-                              <button class="cart-btn"
-                                onclick="event.preventDefault(); window.location.href='/addCart?productId=<%= product._id %>&quantity=<%= 1%>'">
-                                <i class="fi-rs-shopping-bag-add"></i>
-                              </button>
-                            </div>
-                          </div>
-                  </div>
-                  <div class="art-details">
-                    <span class="category">
-                      <%= product.category.name %>
-                    </span>
-                    <h3 class="title">
-                      <%= product.productName %>
-                    </h3>
-                    <div class="price-tag">
-                      <span class="current-price">₹<%= product.salePrice %></span>
-                      <% if (product.regularPrice && product.regularPrice> product.salePrice) { %>
-                        <span class="original-price">₹<%= product.regularPrice %></span>
-                        <span class="discount">-<%= Math.round(((product.regularPrice - product.salePrice) /
-                            product.regularPrice) * 100) %>%</span>
-                        <% } %>
+  <section class="art-gallery-section">
+    <div class="container">
+      <div class="art-grid">
+        <% if (products && products.length> 0) { %>
+          <% products.forEach(product=> { %>
+            <div class="art-card">
+              <a href="/productDetails?id=<%= product._id %>" class="product-link">
+                <div class="art-image">
+                  <% if (product.productImage && product.productImage.length> 0) { %>
+                    <img src="/uploads/re-image/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                  <% } else { %>
+                    <img src="/path/to/placeholder-image.jpg" alt="No image available">
+                  <% } %>
+                  <div class="overlay">
+                    <div class="action-buttons">
+                      <button class="cart-btn"
+                        onclick="event.preventDefault(); window.location.href='/addCart?productId=<%= product._id %>&quantity=1'">
+                        <i class="fi-rs-shopping-bag-add"></i>
+                      </button>
+                      <button class="cart-btn"
+                      onclick="event.preventDefault(); window.location.href='/addWishlist?productId=<%= product._id %>&quantity=1'">
+                      <i class="fi-rs-heart"></i>
+                    </button>
                     </div>
                   </div>
-                </a>
-              </div>
-              <% }); %>
-                <% } else { %>
-                  <div class="no-products">
-                    <p>No artworks available</p>
+                </div>
+                <div class="art-details">
+                  <span class="stock <%= product.quantity > 0 ? 'in-stock' : 'out-of-stock' %>">
+                    <%= product.quantity > 0 ? 'Item has ' + product.quantity + ' quantity' : 'Out of stock' %>
+                  </span>
+                  <h3 class="title">
+                    <%= product.productName %>
+                  </h3>
+                  <div class="price-container">
+                    <div class="offer-price">₹<%= product.salePrice %></div>
+                    <% if (product.regularPrice && product.regularPrice > product.salePrice) { %>
+                      <div class="original-price">₹<%= product.regularPrice %></div>
+                      <div class="discount-tag">
+                        -<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%
+                      </div>
+                    <% } %>
                   </div>
-                  <% } %>
-        </div>
+                </div>
+              </a>
+            </div>
+          <% }); %>
+        <% } else { %>
+          <div class="no-products">
+            <p>No artworks available</p>
+          </div>
+        <% } %>
       </div>
-    </section>
+    </div>
+  </section>
+</main>
 
-  </main>
-  <script>
-    document.getElementById("sortOptions").addEventListener("change", async function () {
-      const selectedOption = this.value;
-      console.log(selectedOption)
-      try {
-        const response = await fetch(`/getProducts?sort=${selectedOption}`, {
-          headers: { "Accept": "application/json" }
-        });
-        const data = await response.json();
-        console.log(data)
-        if (response.ok) {
-          renderProducts(data.products);
-        } else {
-          console.error("Error fetching sorted products:", data.message);
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
-    });
+<script>
+  const fetchAndUpdateProducts = async () => {
+    const selectedSort = document.getElementById("sortOptions").value;
+    const selectedCategory = document.getElementById("categoryFilter").value;
 
-    function renderProducts(products) {
-      const artGrid = document.querySelector(".art-grid");
-      artGrid.innerHTML = "";
-
-      products.forEach(product => {
-        const productHTML = `
-                  <div class="art-card">
-                      <a href="/productDetails?id=${product._id}" class="product-link">
-                          <div class="art-image">
-                              <img src="/uploads/re-image/${product.productImage[0] || 'placeholder.jpg'}" alt="${product.productName}">
-                              <div class="overlay">
-                                  <div class="action-buttons">
-                                      <button class="cart-btn" onclick="event.preventDefault(); window.location.href='/addCart?productId=${product._id}&quantity=1'">
-                                          <i class="fi-rs-shopping-bag-add"></i>
-                                      </button>
-                                  </div>
-                              </div>
-                          </div>
-                          <div class="art-details">
-                              
-                              <h3 class="title">${product.productName}</h3>
-                              <div class="price-tag">
-                                  <span class="current-price">₹${product.salePrice}</span>
-                                  ${product.regularPrice > product.salePrice ? `<span class="original-price">₹${product.regularPrice}</span>
-                                  <span class="discount">-${Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)}%</span>` : ""}
-                              </div>
-                          </div>
-                      </a>
-                  </div>
-              `;
-        artGrid.insertAdjacentHTML("beforeend", productHTML);
+    try {
+      const response = await fetch(`/getProducts?sort=${selectedSort}&category=${selectedCategory}`, {
+        headers: { "Accept": "application/json" }
       });
+      const data = await response.json();
+      const productsContainer = document.querySelector(".art-grid");
+      productsContainer.innerHTML = ""; 
+      
+      data.products.forEach(product => {
+        const productCard = document.createElement("div");
+        productCard.classList.add("art-card");
+        productCard.innerHTML = `
+          <a href="/productDetails?id=${product._id}" class="product-link">
+            <div class="art-image">
+              <img src="/uploads/re-image/${product.productImage[0] || 'default-image.jpg'}" alt="${product.productName}">
+            </div>
+            <div class="art-details">
+              <span class="stock ${product.quantity > 0 ? 'in-stock' : 'out-of-stock'}">
+                ${product.quantity > 0 ? 'Item has ' + product.quantity + ' quantity' : 'Out of stock'}
+              </span>
+              <h3 class="title">${product.productName}</h3>
+              <div class="price-container">
+                <div class="offer-price">₹${product.salePrice}</div>
+                ${product.regularPrice && product.regularPrice > product.salePrice ? `
+                  <div class="original-price">₹${product.regularPrice}</div>
+                  <div class="discount-tag">-${Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100)}%</div>
+                ` : ''}
+              </div>
+            </div>
+          </a>
+        `;
+        productsContainer.appendChild(productCard);
+      });
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
-  </script>
+  };
 
+  document.getElementById("sortOptions").addEventListener("change", fetchAndUpdateProducts);
+  document.getElementById("categoryFilter").addEventListener("change", fetchAndUpdateProducts);
+</script>
 
-  <style>
-    .art-gallery-section {
-      padding: 50px 0;
-      background-color: #f8f9fa;
-    }
-
-    .art-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 30px;
-      padding: 20px;
-    }
-
-    .art-card {
-      background: white;
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
-      position: relative;
-    }
-
-    .art-card:hover {
-      transform: translateY(-5px);
-    }
-
-    .art-image {
-      position: relative;
-      padding-top: 100%;
-    }
-
-    .art-image img {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.3);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .art-card:hover .overlay {
-      opacity: 1;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 15px;
-    }
-
-    .action-buttons button {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      border: none;
-      background: white;
-      color: #333;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .action-buttons button:hover {
-      background: #333;
-      color: white;
-    }
-
-    .art-details {
-      padding: 20px;
-    }
-
-    .category {
-      color: #666;
-      font-size: 0.9em;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .title {
-      margin: 10px 0;
-      font-size: 1.2em;
-      color: #333;
-    }
-
-    .price-tag {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .current-price {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .original-price {
-      text-decoration: line-through;
-      color: #999;
-    }
-
-    .discount {
-      background: #ff4444;
-      color: white;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.8em;
-    }
-
-    @media (max-width: 768px) {
-      .art-grid {
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 20px;
-      }
-    }
-
-    .product-link {
-      text-decoration: none;
-      color: inherit;
-      display: block;
-    }
-
-    .product-link:hover {
-      text-decoration: none;
-      color: inherit;
-    }
-  </style>
-  <%- include("../partials/user/footer.ejs") %>
+<%- include("../partials/user/footer.ejs") %>

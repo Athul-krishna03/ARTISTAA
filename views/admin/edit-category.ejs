@@ -1,62 +1,70 @@
 <%- include("../../views/partials/admin/header") %>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6 mt-60">
-       
-            <form method="post" action="/admin/editCategory?id=<%= category._id %>">
-                <div class="d-grid text-end mt-30 col-md-5">
-                    <button class="btn btn-primary" type="submit" onclick="check('<%= category._id%>')">Update category</button>
-                </div>
-                <div class="mb-4 mt-30">
-                    <label for="product_name" class="form-label">Name</label>
-                    <input type="text" name="name" value="<%= category.name %>" class="form-control border" />
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control border" ><%= category.description %></textarea>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<script>
-async function check(categoryId){
-    console.log(categoryId);
-    
-    try {
-        const response = await fetch("/admin/editCategory",{
-        method:"POST",
-        headers:{
-          'content-type':"application/json",
-        },
-        body:JSON.stringify({
-          categoryId:categoryId,
-        })
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-      })
-      const data = await response.json();
-      if(response.ok && data.status === true){
-        Swal.fire(
-          "Category updated",
-          "The Category has been updated",
-          "success"
-        ).then(()=>{
-          location.reload();
-        })
-      }else{
-        Swal.fire("Failed",data.message || "Removing offer failed","error");
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 mt-60">
+        <form id="editCategoryForm" onsubmit="return check('<%= category._id %>')">
+          <div class="d-grid text-end mt-30 col-md-5">
+            <button class="btn btn-primary" type="submit">Update category</button>
+          </div>
+          <div class="mb-4 mt-30">
+            <label for="product_name" class="form-label">Name</label>
+            <input type="text" name="name" value="<%= category.name %>" class="form-control border" required />
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control border" required><%= category.description %></textarea>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function check(categoryId) {
+      event.preventDefault();
+
+      try {
+        const form = document.getElementById("editCategoryForm");
+        const formData = new FormData(form);
+        const data = {
+          name: formData.get("name"),
+          description: formData.get("description"),
+          categoryId: categoryId
+        };
+
+        const response = await fetch(`/admin/editCategory?id=${categoryId}`, {
+          method: "POST",
+          headers: {
+            'Content-Type': "application/json",
+          },
+          body: JSON.stringify(data)
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok && responseData.status === true) {
+          Swal.fire({
+            
+            icon: "success",
+            title:"Category updated",
+            text: "The Category has been updated",
+            position: "center"
+
+          }).then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire("Failed", responseData.message, "error");
+        }
+      } catch (error) {
+        Swal.fire("Error", "An error occurred while updating the category", "error");
+        console.error("Error updating category:", error);
       }
-    } catch (error) {
-      Swal.fire(
-        "Error",
-        "An error occured by removing the offer",
-         "error"
-      );
-      console.log("Error removing offer",error);
-      
     }
-    
-  }
   </script>
-<%- include("../../views/partials/admin/footer") %>
+
+  <%- include("../../views/partials/admin/footer") %>

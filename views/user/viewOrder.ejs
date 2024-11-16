@@ -13,7 +13,19 @@
             <div class="store-order-summary d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="store-name">ARTISTAA</h2>
-                    <p>Order ID: <%= order._id %> <br>Order Status: <span class="badge bg-warning text-dark ms-2"><%= order.status || "N/A" %></span></p>
+                    <p>Order ID: <%= order._id %> <br>Order Status: 
+                        <span class="badge 
+                            <% if (order.status === 'Pending') { %> bg-warning text-dark 
+                            <% } else if (order.status === 'Processing') { %> bg-info text-white 
+                            <% } else if (order.status === 'Shipped') { %> bg-primary text-white 
+                            <% } else if (order.status === 'Delivered') { %> bg-success text-white 
+                            <% } else if (order.status === 'Cancelled') { %> bg-danger text-white 
+                            <% } else if (order.status === 'Return Request') { %> bg-secondary text-white 
+                            <% } else if (order.status === 'Returned') { %> bg-dark text-white 
+                            <% } %>">
+                            <%= order.status %>
+                        </span>
+                    </p>
                     <p>Placed on: <%= order.createdOn ? order.createdOn.toLocaleString() : "Date unavailable" %></p>
                 </div>
                 <div class="order-total">
@@ -25,11 +37,24 @@
             <div class="shipment-status card mb-4">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
-                        <h5>Shipment Status: <span class="text-warning"><%= order.status || "Pending" %></span></h5>
+                        <h5>Shipment Status: 
+                            <span class="
+                                <% if (order.status === 'Pending') { %> text-warning 
+                                <% } else if (order.status === 'Processing') { %> text-info 
+                                <% } else if (order.status === 'Shipped') { %> text-primary 
+                                <% } else if (order.status === 'Delivered') { %> text-success 
+                                <% } else if (order.status === 'Cancelled') { %> text-danger 
+                                <% } else if (order.status === 'Return Request') { %> text-secondary 
+                                <% } else if (order.status === 'Returned') { %> text-dark 
+                                <% } %>">
+                                <%= order.status || "Pending" %>
+                            </span>
+                        </h5>
                     </div>
                     <a href="#" class="btn btn-outline-success btn-success">Track Order</a>
                 </div>
             </div>
+            
 
             <!-- Products in Order -->
             <div class="order-products card mb-4">

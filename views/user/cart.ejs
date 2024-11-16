@@ -1,4 +1,5 @@
 <%- include("../partials/user/header") %>
+
     <style>
         .cart-container {
             display: flex;
@@ -15,7 +16,6 @@
             max-width: 400px;
             margin-top: 20px;
             margin-left: auto;
-
         }
 
         @media (max-width: 768px) {
@@ -29,6 +29,7 @@
             }
         }
     </style>
+
     <main class="main">
         <div class="page-header breadcrumb-wrap">
             <div class="container">
@@ -39,13 +40,12 @@
                 </div>
             </div>
         </div>
+
         <section class="mt-50 mb-50">
             <div class="container">
                 <div class="cart-container">
-                    <!-- Cart Details Section -->
                     <div class="cart-details col-12">
                         <div class="table-responsive">
-                    
                             <table class="table shopping-summery text-center clean">
                                 <thead>
                                     <tr class="main-heading">
@@ -58,12 +58,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (cart && cart.items.length> 0) { %>
+                                    <% if (cart.items && cart.items.length> 0) { %>
                                         <% cart.items.forEach(item=> { %>
                                             <tr data-product-id="<%= item.productId._id %>"
                                                 data-stock="<%= item.productId.quantity %>">
-
-
                                                 <td class="image product-thumbnail">
                                                     <img src="/uploads/re-image/<%= item.productId.productImage[0] %>"
                                                         alt="<%= item.productId.productName %>">
@@ -78,26 +76,38 @@
                                                 <td class="price" data-title="Price"><span>₹<%= item.price %></span>
                                                 </td>
                                                 <td class="text-center" data-title="Quantity">
-                                                    <div class="detail-qty border radius m-auto">
-                                                        <a href="#" class="qty-down"><i
-                                                                class="fi-rs-angle-small-down"></i></a>
-                                                        <span class="qty-val">
+                                                    <% if(item.productId.quantity != 0) {%>
+                                                    <div class="quantity-control">
+                                                        <button type="button"
+                                                            onclick="updateQuantity('<%= item.productId._id %>', -1,'<%= item.productId.quantity %>')"
+                                                            class="btn-quantity">-</button>
+                                                        <span id="quantity-<%= item.productId._id %>"
+                                                            class="quantity-display">
                                                             <%= item.quantity %>
                                                         </span>
-                                                        <a href="#" class="qty-up"><i
-                                                                class="fi-rs-angle-small-up"></i></a>
+                                                        <button type="button"
+                                                            onclick="updateQuantity('<%= item.productId._id %>', 1,'<%= item.productId.quantity %>')"
+                                                            class="btn-quantity">+</button>
                                                     </div>
+                                                <% }else{%>
+                                                    <span 
+                                                        class="text-danger">
+                                                        out of stock
+                                                    </span>
+                                                <% } %>
+
                                                 </td>
                                                 <td class="text-right subtotal" data-title="Subtotal">
-                                                    <span>₹<%= item.totalPrice %></span>
+                                                    <span id="subtotal-<%= item.productId._id %>">₹<%= item.totalPrice
+                                                            %></span>
                                                 </td>
+
                                                 <td class="action" data-title="Remove">
                                                     <button class="text-muted"
                                                         onclick="removeFromCart('<%= item.productId._id %>')">
                                                         <i class="fi-rs-trash"></i>
                                                     </button>
                                                 </td>
-
                                             </tr>
                                             <% }); %>
                                                 <% } else { %>
@@ -108,13 +118,9 @@
                                 </tbody>
                             </table>
                         </div>
+
                         <div class="cart-action text-end">
-                            <a href="/cart/clear" class="btn mr-10 mb-sm-15" ><i class="fi-rs-cross-small"></i> Clear
-                                Cart</a>
-                          
-                                <a href="/" class="btn"><i class="fi-rs-shopping-bag mr-10"></i> Continue Shopping</a>
-                          
-                            
+                            <a href="/" class="btn"><i class="fi-rs-shopping-bag mr-10"></i> Continue Shopping</a>
                         </div>
                     </div>
 
@@ -149,19 +155,20 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <% if(cart.items.length){ %>
-                            <a href="/checkout" class="btn"><i class="fi-rs-box-alt mr-10"></i> Proceed To Checkout</a>
-                            <% } %>
+                            <% if (cart.items && cart.items.length) { %>
+                                <a href="/checkout" class="btn"><i class="fi-rs-box-alt mr-10"></i> Proceed To
+                                    Checkout</a>
+                                <% } %>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
     </main>
+
     <%- include("../partials/user/footer") %>
 
         <script>
-
             function removeFromCart(productId) {
                 Swal.fire({
                     title: 'Are you sure?',
@@ -188,67 +195,110 @@
                 });
             }
 
+            function updateQuantity(productId, change, availableQuantity) {
+                const quantityElement = document.getElementById(`quantity-${productId}`);
+                const currentQuantity = parseInt(quantityElement.textContent);
 
-            document.addEventListener("DOMContentLoaded", () => {
-                const updateCartTotal = () => {
-                    const subtotals = document.querySelectorAll(".subtotal span");
-                    let cartTotal = 0;
+                const maxQuantity = Math.min(availableQuantity, 5);
 
-                    subtotals.forEach(subtotal => {
-                        cartTotal += parseFloat(subtotal.textContent.replace("₹", ""));
+                if (currentQuantity + change < 1) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Minimum Quantity Reached",
+                        text: "The minimum quantity is 1.",
                     });
+                    return;
+                } else if (currentQuantity + change > maxQuantity) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Maximum Quantity Reached",
+                    });
+                    return;
+                }
 
-                    document.getElementById("cartTotal").textContent = `₹${cartTotal.toFixed(2)}`;
-                    document.getElementById("grandTotal").textContent = `₹${cartTotal.toFixed(2)}`;
-                };
-
-                document.querySelectorAll(".qty-up, .qty-down").forEach(button => {
-                    button.addEventListener("click", async event => {
-                        event.preventDefault();
-
-                        const isIncrease = event.target.closest(".qty-up");
-                        const qtyContainer = button.closest(".detail-qty");
-                        const qtyValElement = qtyContainer.querySelector(".qty-val");
-                        const row = button.closest("tr");
-                        let quantity = parseInt(qtyValElement.innerHTML);
-                        const price = parseFloat(row.querySelector(".price span").textContent.replace("₹", ""));
-                        const maxStock = parseInt(row.getAttribute("data-stock"));
-                        const maxLimit = Math.min(5, maxStock); // Lesser of 5 or stock available
-                        const productId = row.getAttribute("data-product-id");
-
-                        // Update quantity based on button clicked
-                        if (isIncrease && quantity < maxLimit) {
-                            quantity++;
-                        } else if (!isIncrease && quantity > 1) {
-                            quantity--;
-                        }
-
-                        // Set the updated quantity in the UI
-                        qtyValElement.textContent = quantity;
-
-                        // Update subtotal
-                        const subtotalElement = row.querySelector(".subtotal span");
-                        const newSubtotal = price * quantity;
-                        subtotalElement.textContent = `₹${newSubtotal.toFixed(2)}`;
-
-                        // Update total
-                        updateCartTotal();
-
-                        // Send updated quantity to backend
-                        try {
-                            await fetch(`/updateQty`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ productId, quantity })
+                fetch("/updateQuantity", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ productId, change }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            quantityElement.textContent = data.newQuantity;
+                            document.getElementById(`subtotal-${productId}`).textContent = `₹${data.newSubtotal.toLocaleString()}`;
+                            document.getElementById("cartTotal").textContent = `₹${data.totalPrice.toLocaleString()}`;
+                            document.getElementById("grandTotal").textContent = `₹${data.totalPrice.toLocaleString()}`;
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: data.message,
                             });
-                        } catch (error) {
-                            console.error("Error updating cart:", error);
                         }
+                    })
+                    .catch(error => {
+                        console.error("Error updating quantity:", error);
                     });
-                });
-            });
+            }
+            // document.addEventListener("DOMContentLoaded", () => {
+            //     const updateCartTotal = () => {
+            //         const subtotals = document.querySelectorAll(".subtotal span");
+            //         let cartTotal = 0;
 
+            //         subtotals.forEach(subtotal => {
+            //             cartTotal += parseFloat(subtotal.textContent.replace("₹", ""));
+            //         });
 
+            //         document.getElementById("cartTotal").textContent = `₹${cartTotal.toFixed(2)}`;
+            //         document.getElementById("grandTotal").textContent = `₹${cartTotal.toFixed(2)}`;
+            //     };
+
+            //     document.querySelectorAll(".qty-up, .qty-down").forEach(button => {
+            //         button.addEventListener("click", async event => {
+            //             event.preventDefault();
+
+            //             const isIncrease = event.target.closest(".qty-up");
+            //             const qtyContainer = button.closest(".detail-qty");
+            //             const qtyValElement = qtyContainer.querySelector(".qty-val");
+            //             const row = button.closest("tr");
+            //             let quantity = parseInt(qtyValElement.innerHTML);
+            //             const price = parseFloat(row.querySelector(".price span").textContent.replace("₹", ""));
+            //             const maxStock = parseInt(row.getAttribute("data-stock"));
+            //             const maxLimit = Math.min(5, maxStock);
+            //             const productId = row.getAttribute("data-product-id");
+
+            //             if (isIncrease && quantity < maxLimit) {
+            //                 quantity++;
+            //             } else if (!isIncrease && quantity > 1) {
+            //                 quantity--;
+            //             }
+
+            //             qtyValElement.textContent = quantity;
+            //             const subtotalElement = row.querySelector(".subtotal span");
+            //             const newSubtotal = price * quantity;
+            //             subtotalElement.textContent = `₹${newSubtotal.toFixed(2)}`;
+
+            //             updateCartTotal();
+
+            //             try {
+            //                 const response = await fetch(`/updateQty`, {
+            //                     method: 'POST',
+            //                     headers: { 'Content-Type': 'application/json' },
+            //                     body: JSON.stringify({ productId, quantity })
+            //                 });
+            //                 const data = await response.json();
+            //                 if (data.success) {
+            //                     document.getElementById("cartTotal").textContent = `₹${data.newTotal.toFixed(2)}`;
+            //                     document.getElementById("grandTotal").textContent = `₹${data.newTotal.toFixed(2)}`;
+            //                 } else {
+            //                     console.error("Failed to update cart:", data.message);
+            //                 }
+            //             } catch (error) {
+            //                 console.error("Error updating cart:", error);
+            //             }
+            //         });
+            //     });
+            // });
         </script>

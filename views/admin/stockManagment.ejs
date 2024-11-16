@@ -1,0 +1,140 @@
+<%- include("../partials/admin/header") %>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Stock Management</h2>
+            <p>Monitor and update product stock levels.</p>
+        </div>
+        <div>
+            <input type="text" placeholder="Search product name or ID" class="form-control bg-white">
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <header class="card-header">
+            <div class="row gx-3">
+                <div class="col-lg-4 col-md-6 me-auto">
+                    <input type="text" placeholder="Search..." class="form-control">
+                </div>
+                <div class="col-lg-2 col-6 col-md-3">
+                    <select class="form-select">
+                        <option>Status</option>
+                        <option>In Stock</option>
+                        <option>Out of Stock</option>
+                        <option>Show all</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-6 col-md-3">
+                    <select class="form-select">
+                        <option>Show 20</option>
+                        <option>Show 30</option>
+                        <option>Show 40</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th scope="col">Product Name</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Stock</th>
+                            <th scope="col">Reorder Status</th>
+                            <th scope="col" class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (products) { %>
+                            <% products.forEach(product => { %>
+                                <tr>
+                                    <td>#<%= product._id %></td>
+                                    <td><b><%= product.productName %></b></td>
+                                    <td><%= product.category.name %></td>
+                                    <td>
+                                        <%= product.quantity %>
+                                    </td>
+                                    <td>
+                                        <% if (product.quantity <= product.reorderLevel) { %>
+                                            <span class="text-danger">Reorder Needed</span>
+                                        <% } else { %>
+                                            <span class="text-success">Sufficient</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex align-items-center">
+                                            <input type="hidden" name="productId" value="<%= product._id %>">
+                                            <input type="number" id="stock-input-<%= product._id %>" name="newStock" value="<%= product.quantity %>" min="0" class="form-control form-control-sm mx-2 text-center" style="width: 80px;">
+                                            <button type="button" class="btn btn-sm btn-primary ms-2" onclick="updateStock('<%= product._id %>')">Update Stock</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="pagination-area mt-15 mb-50">
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-start">
+                <li class="page-item active"><a class="page-link" href="#">01</a></li>
+                <li class="page-item"><a class="page-link" href="#">02</a></li>
+                <li class="page-item"><a class="page-link" href="#">03</a></li>
+                <li class="page-item"><a class="page-link dot" href="#">...</a></li>
+                <li class="page-item"><a class="page-link" href="#">16</a></li>
+                <li class="page-item"><a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a></li>
+            </ul>
+        </nav>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    async function updateStock(productId) {
+        const newStock = document.getElementById(`stock-input-${productId}`).value;
+        
+        const response = await fetch('/admin/updateStock', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                productId: productId,
+                newStock: newStock
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Stock Updated',
+                text: data.message,
+                showConfirmButton: false,
+                timer: 1500,
+                position: 'center',
+                
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message,
+                showConfirmButton: true,
+                position: 'center',
+            
+            });
+        }
+    }
+</script>
+
+<%- include("../partials/admin/footer") %>

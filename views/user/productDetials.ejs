@@ -33,18 +33,15 @@
                                                 <img src="/uploads/re-image/<%= data.productImage[2] %>"
                                                     alt="product image">
                                             </figure>
-
                                         </div>
 
                                         <div class="slider-nav-thumbnails pl-15 pr-15">
-
                                             <div><img src="/uploads/re-image/<%= data.productImage[0] %>"
                                                     alt="product image"></div>
                                             <div><img src="/uploads/re-image/<%= data.productImage[1] %>"
                                                     alt="product image"></div>
                                             <div><img src="/uploads/re-image/<%= data.productImage[2] %>"
                                                     alt="product image"></div>
-
                                         </div>
                                     </div>
                                     <!-- End Gallery -->
@@ -62,8 +59,7 @@
                                             </div>
                                             <div class="product-rate-cover text-end">
                                                 <div class="product-rate d-inline-block">
-                                                    <div class="product-rating" style="width:90%">
-                                                    </div>
+                                                    <div class="product-rating" style="width:90%"></div>
                                                 </div>
                                                 <span class="font-small ml-5 text-muted"> (25 reviews)</span>
                                             </div>
@@ -76,8 +72,8 @@
                                                 <ins><span class="old-price font-md ml-15"><i
                                                             class="fas fa-rupee-sign rupee-icon"></i>:<%=
                                                             data.regularPrice %></span></ins>
-                                                <span class="save-price  font-md color3 ml-15">
-                                                    <%= data.productOffer%>%
+                                                <span class="save-price font-md color3 ml-15">
+                                                    <%= data.productOffer %>%
                                                 </span>
                                             </div>
                                         </div>
@@ -90,7 +86,7 @@
                                         <div class="product_sort_info font-xs mb-30">
                                             <ul>
                                                 <li>Availability:<span class="in-stock text-success ml-5">
-                                                        <%= data.quantity%> Items In Stock
+                                                        <%= data.quantity %> Items In Stock
                                                     </span></li>
                                                 <li class="mb-10"><i class="fi-rs-refresh mr-5"></i> 30 Day Return
                                                     Policy</li>
@@ -98,30 +94,47 @@
                                                 </li>
                                             </ul>
                                         </div>
-
                                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
-                                        <div class="detail-extralink">
-                                            <div class="detail-qty border radius">
-                                                <a href="" class="qty-down"
-                                                    onclick="updateQuantity(-1); return false;"><i
-                                                        class="fi-rs-angle-small-down"></i></a>
-                                                <input type="text" name="quantity" value="1" class="qty-val"
-                                                    id="product-qty" readonly>
-                                                <a href="" class="qty-up" onclick="updateQuantity(1); return false;"><i
-                                                        class="fi-rs-angle-small-up"></i></a>
-                                            </div>
 
-                                            <div class="product-extra-link2">
-                                                <button type="button" class="button button-add-to-cart"
-                                                    onclick="addToCart('<%= data._id %>')">Add to Cart</button>
-                                                <button type="button" class="button button-buy-now"
-                                                    onclick="location.href='/checkout?productId=<%= data._id%>'">Buy
-                                                    Now</button>
-                                                <a aria-label="Add To Wishlist" class="action-btn hover-up"
-                                                    href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
-                                                <a aria-label="Compare" class="action-btn hover-up"
-                                                    href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
-                                            </div>
+                                        <!-- Detail Extralink -->
+                                        <div
+                                            class="detail-extralink d-flex flex-column flex-md-row align-items-start align-items-md-center mt-4">
+                                            <% if (data.quantity> 0) { %>
+                                                <!-- Quantity Selector -->
+                                                <div class="detail-qty border radius mb-3 mb-md-0">
+                                                    <a href="#" class="qty-down"
+                                                        onclick="updateQuantity(-1); return false;"><i
+                                                            class="fi-rs-angle-small-down"></i></a>
+                                                    <input type="text" name="quantity" value="1" class="qty-val"
+                                                        id="product-qty" readonly>
+                                                    <a href="#" class="qty-up"
+                                                        onclick="updateQuantity(1); return false;"><i
+                                                            class="fi-rs-angle-small-up"></i></a>
+                                                </div>
+
+                                                <!-- Add to Cart and Buy Now Buttons -->
+                                                <div class="product-extra-link2 d-flex align-items-center">
+                                                    <button type="button" class="button button-add-to-cart mr-2"
+                                                        onclick="addToCart('<%= data._id %>')">Add to Cart</button>
+                                                    <button type="button" class="button button-buy-now"
+                                                        onclick="redirectToCheckout('<%= data._id %>')">Buy
+                                                        Now</button>
+                                                    <!-- Wishlist Button -->
+                                                    <button id="wishlist-btn"
+                                                        onclick="toggleWishlist('<%= data._id %>')"
+                                                        class="wishlist-btn">
+                                                        <i class="fa fa-heart" id="wishlist-icon"
+                                                            style="color: #ddd;"></i>
+                                                    </button>
+
+                                                </div>
+                                                <% } else { %>
+
+                                                    <div class="out-of-stock-message mt-3">
+                                                        <p class="text-danger font-weight-bold">Sorry, this product is
+                                                            currently out of stock. Please check back later.</p>
+                                                    </div>
+                                                    <% } %>
                                         </div>
 
                                     </div>
@@ -134,26 +147,210 @@
         </section>
     </main>
     <script>
-       let quantity=1
+        let quantity = 1;
         function updateQuantity(change) {
-            const maxQty = parseInt("<%= data.quantity %>"); 
+            const maxQty = parseInt("<%= data.quantity %>");
             const maxLimit = 5;
-            let qtyInput = document.getElementById('product-qty'); 
+            let qtyInput = document.getElementById('product-qty');
 
             let currentQty = parseInt(qtyInput.value);
             currentQty = Math.max(1, Math.min(currentQty + change, maxQty, maxLimit));
 
             qtyInput.value = currentQty;
-            quantity=currentQty;
+            quantity = currentQty;
             console.log("Updated Quantity:", currentQty);
         }
 
-
         function addToCart(productId) {
-            console.log("entered")
-           return  window.location.href = `/addCart?productId=${productId}&quantity=${quantity}`;
+            console.log("entered");
+            return window.location.href = `/addCart?productId=${productId}&quantity=${quantity}`;
         }
-    </script>
 
+        function redirectToCheckout(productId) {
+            const qtyValue = document.getElementById('product-qty').value;
+            window.location.href = `/checkout?productId=${productId}&qty=${qtyValue}`;
+        }
+        window.onload = async function () {
+            const productId = '<%= data._id %>';
+            const isInWishlist = await checkIfInWishlist(productId);
+            if (isInWishlist) {
+                document.getElementById('wishlist-icon').classList.add('fa-heart-filled');
+                
+            }
+        };
+
+        async function checkIfInWishlist(productId) {
+            try {
+                const response = await fetch(`/checkWishlist?productId=${productId}`, {
+                    method: 'get',
+                    headers: {
+                        "Accept": "application/json",
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                const result = await response.json();
+                return result.isInWishlist;
+            } catch (error) {
+                console.error("Error checking wishlist:", error);
+                return false;
+            }
+        }
+        async function toggleWishlist(productId) {
+            try {
+                const response = await fetch(`/addWishlist?productId=${productId}`, {
+                    method: 'get',
+                    headers: {
+                        "Accept": "application/json",
+                        'Content-Type': 'application/json'
+                    },
+
+                });
+
+                if (response.ok) {
+
+                    document.getElementById('wishlist-icon').classList.add('fa-heart-filled');
+                    document.getElementById('wishlist-icon').style.color = '#ff0000';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Wishlist!',
+                        text: 'The product has been added to your wishlist.',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to Add',
+                        text: result.message || 'Failed to add product to wishlist.',
+                    });
+                }
+            } catch (error) {
+                console.error("Error adding item to wishlist:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while adding the item to the wishlist.',
+                });
+            }
+        }
+
+    </script>
+    <style>
+        .wishlist-btn {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .wishlist-btn:hover i {
+            color: #ff0000;
+            /* Red color when hovering over the heart */
+        }
+
+        /* Styling for the heart icon */
+        #wishlist-icon {
+            font-size: 22px;
+
+            transition: color 0.3s ease;
+        }
+
+        /* Red heart when filled */
+        .fa-heart-filled {
+            color: #ff0000;
+        }
+
+        .detail-extralink {
+            margin-top: 15px;
+        }
+
+        .detail-qty {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .qty-val {
+            width: 50px;
+            text-align: center;
+            border: none;
+            font-size: 18px;
+        }
+
+        .qty-up,
+        .qty-down {
+            cursor: pointer;
+
+            background-color: #f1f1f1;
+            border: none;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .qty-up:hover,
+        .qty-down:hover {
+            background-color: #ccc;
+        }
+
+        /* Styling for buttons */
+        .product-extra-link2 {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .button {
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button-add-to-cart {
+            background-color: #000000;
+            color: rgb(255, 255, 255);
+            border: none;
+        }
+
+        .button-buy-now {
+            background-color: #25b302;
+            color: white;
+            border: none;
+        }
+
+        .button-buy-now:hover {
+            background-color: #01fa7d;
+        }
+
+        /* Out of stock message */
+        .out-of-stock-message p {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .detail-extralink {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .product-extra-link2 {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
 
     <%- include("../partials/user/footer.ejs") %>

@@ -12,7 +12,7 @@ const loadlogin=async (req,res) => {
             return res.redirect("/admin")
         }
         // console.log("hi")
-        res.render("admin-login");
+        return res.render("admin-login");
     } catch (error) {
         console.error("adminLogin error",error.message);
         
@@ -22,10 +22,8 @@ const login =async (req,res) => {
     try {
         const {email,password}=req.body;
         const admin = await User.findOne({email,isAdmin:true})
-        req.session.user=admin
         if(admin){
             const passMatch=await bcrypt.compare(password,admin.password);
-            
             if(passMatch){
                 req.session.admin=true;
                 return res.redirect("/admin");
@@ -42,10 +40,11 @@ const login =async (req,res) => {
 }
 const loadDashboard=async (req,res) => {
     try {
+        console.log("admin sesssion:",req.session)
         if(req.session.admin){
-            res.render("dashboard")
+            return res.render("dashboard", { activePage: 'dashboard' })
         }else{
-            res.redirect("/admin/login")
+            return res.redirect("/admin/login")
         }
     } catch (error) {
         console.error("dashBoard render error",error.message)

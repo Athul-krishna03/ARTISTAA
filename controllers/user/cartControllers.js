@@ -5,6 +5,7 @@ const Address = require("../../models/addressSchema");
 const Order = require("../../models/orderSchema");
 
 
+
 const showCart = async (req, res) => {
     try {
         const userId = req.session.user;
@@ -15,11 +16,16 @@ const showCart = async (req, res) => {
         const cart = await Cart.findOne({ userId }).populate("items.productId") || [];
 
         if (!cart) {
-            return res.status(404).render("cart");
+            return res.status(404).render("cart", { user: user, cartTotal: 0 });
         }
-        const cartTotal = cart.items.reduce((acc, item) => acc + item.totalPrice, 0);
+      
+        const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
 
-        res.render("cart", { cart:cart, cartTotal:cartTotal,user:user });
+        res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
+            
+        
+
+        
     } catch (error) {
         console.error("Error showing cart:", error);
         res.status(500).send("Error showing cart");
@@ -102,29 +108,42 @@ const removeCart = async (req, res) => {
 const getCheckOut = async (req, res) => {
     try {
         const userId = req.session.user;
-        const user = await User.findById(userId);
-        const productId = req.query.productId;
-        const addresses = await Address.findOne({ userId:userId}) || [];
+        
         if (!userId) {
             return res.status(404).redirect("/login");
         }
+        
+        const user = await User.findById(userId);
+        const productId = req.query.productId;
+        const qty = parseInt(req.query.qty);
+    
+        const addresses = (await Address.findOne({ userId })) || [];
 
         let totalPrice;
 
         if (productId) {
+           
             const product = await Product.findById(productId);
-            if (!product) {
-                return res.status(404).send("/pageNotFound");
+            if (!product || product.isBlocked) {
+                return res.status(404).redirect("/pageNotFound");
             }
-            totalPrice = product.salePrice
-            return res.render('checkout', { cart: null, product, addresses: addresses.address , totalPrice , user:user });
+           
+             totalPrice = product.salePrice*qty
+            return res.render('checkout', { cart: null, product, addresses: addresses.address, totalPrice, user, qty });
         } else {
-            const cartItems = await Cart.findOne({ userId: user }).populate('items.productId');
-            if (!cartItems) {
-                return res.render('checkout', { cart: null, products: [], address: addresses.address, totalPrice, product: null });
+          
+            const cartItems = await Cart.findOne({ userId }).populate('items.productId');
+            if (!cartItems || cartItems.items.length === 0) {
+                return res.render('checkout', { cart: null, products: [], addresses: addresses.address, totalPrice: 0, product: null, user });
             }
-            totalPrice = cartItems.items.reduce((sum, item) => sum + item.totalPrice, 0);
-            return res.render('checkout', { cart: cartItems, products: cartItems.items, addresses: addresses.address, totalPrice, product: null , user:user});
+            
+            const activeItems = cartItems.items.filter(item => item.productId && !item.productId.isBlocked);
+            if (activeItems.length === 0) {
+                return res.render('checkout', { cart: null, products: [], addresses: addresses.address, totalPrice: 0, product: null, user });
+            }
+
+            totalPrice = activeItems.reduce((sum, item) => sum + item.totalPrice, 0);
+            return res.render('checkout', { cart: cartItems, products: activeItems, addresses: addresses.address, totalPrice, product: null, user });
         }
     } catch (error) {
         console.error(error);
@@ -133,76 +152,52 @@ const getCheckOut = async (req, res) => {
 };
 
 
+
+
 const updateQty = async (req, res) => {
+    const { productId, change } = req.body;
     try {
-        console.log("entered")
-        const { productId, quantity } = req.body;
-        const userId = req.session.user._id; // Assuming you store user ID in session
 
-        // Find the cart for this user
-        const userCart = await Cart.findOne({ userId: userId });
-        
-        if (!userCart) {
-            return res.status(404).json({
-                success: false,
-                message: 'Cart not found'
-            });
+        const userId = req.session.user;
+        if (!userId) {
+            return res.json({ success: false, message: "User not logged in" });
         }
 
-        // Find the item in the cart
-        const cartItem = userCart.items.find(item => 
-            item.productId.toString() === productId
-        );
-
-        if (!cartItem) {
-            return res.status(404).json({
-                success: false,
-                message: 'Product not found in cart'
-            });
+        const cart = await Cart.findOne({ userId: userId });
+        if (!cart) {
+            return res.json({ success: false, message: "Cart not found" });
         }
 
-        // Get product details to check stock and calculate new price
-        const product = await Product.findById(productId);
-        
-        if (!product) {
-            return res.status(404).json({
-                success: false,
-                message: 'Product not found'
+        const item = cart.items.find((item) => item.productId.toString() === productId);
+        if (item) {
+            item.quantity += change;
+            item.totalPrice = item.quantity * item.price;
+
+            if (item.quantity <= 0) {
+                cart.items = cart.items.filter((item) => item.productId.toString() !== productId);
+            }
+
+            cart.totalPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
+            await cart.save();
+
+            res.json({
+                success: true,
+                newQuantity: item.quantity,
+                newSubtotal: item.totalPrice,
+                totalPrice: cart.totalPrice,
             });
+        } else {
+            res.json({ success: false, message: "Item not found in cart" });
         }
-
-        // Validate stock
-        if (quantity > product.quantity) {
-            return res.status(400).json({
-                success: false,
-                message: 'Requested quantity exceeds available stock'
-            });
-        }
-
-        // Update quantity and total price
-        cartItem.quantity = quantity;
-        cartItem.totalPrice = quantity * product.salePrice;
-
-        // Recalculate cart total
-        userCart.total = userCart.items.reduce((total, item) => total + item.totalPrice, 0);
-
-        // Save the updated cart
-        await userCart.save();
-
-        res.json({
-            success: true,
-            message: 'Cart updated successfully',
-            newTotal: userCart.total
-        });
 
     } catch (error) {
-        console.error('Error updating cart:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
-    }
+        console.error(error);
+        res.json({ success: false, message: "Failed to update quantity" });
+    }
+
 };
+
+
 
 
 
@@ -212,5 +207,6 @@ module.exports={
     addToCart,
     removeCart,
     getCheckOut,
-    updateQty
+    updateQty,
+    
 }

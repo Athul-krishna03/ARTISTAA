@@ -18,7 +18,8 @@ const getBrands = async (req,res) => {
             data:reverseBrand,
             totalBrands:totalBrands,
             totalPages:totalPages,
-            currentPage:page
+            currentPage:page,
+            activePage: 'brands'
         })
 
     }catch(error){

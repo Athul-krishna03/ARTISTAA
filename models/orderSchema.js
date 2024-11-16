@@ -45,6 +45,7 @@ const orderSchema= new Schema({
     },
     finalAmount:{
         type:Number,
+        default:0
         
     },
     address:{
@@ -62,7 +63,10 @@ const orderSchema= new Schema({
         type:Date,
         default:Date.now,
         required:true
-    },couponApplied:{
+    },couponCode:{
+        type:String,
+    }
+    ,couponApplied:{
         type:Boolean,
         default:false
     }

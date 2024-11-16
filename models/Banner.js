@@ -22,13 +22,9 @@ const bannerSchema= new Schema({
        required:true
     },
     endDate:{
-        type:String,
+        type:Date,
         required:true
     }
 })
 
-const Banner=mongoose.model("Banner",bannerSchema);
-
-module.exports={
-    Banner
-}
+module.exports=mongoose.model("Banner",bannerSchema);

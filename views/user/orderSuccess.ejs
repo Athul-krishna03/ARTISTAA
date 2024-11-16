@@ -52,7 +52,7 @@
     <div class="order-details">
         <h1>Order Successful!</h1>
         <p>Your order has been placed successfully.</p>
-        <p><strong>Order ID:</strong> <%= orderId %></p>
+        <p><strong>Order ID:</strong> <%= orderId || 0 %></p>
         <a href="/" class="btn-home">Return to Home</a>
     </div>
 </main>

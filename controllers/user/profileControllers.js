@@ -157,12 +157,18 @@ const postNewPassword = async (req,res) => {
 
 const getUserDashboard = async (req,res) => {
     try {
-        const order = await Order.find({userId:req.session.user}) || [];
-        console.log(order)
+
+        const page = parseInt(req.query.page) || 1;
+        const limit =4;
+        const skip =(page-1)*limit;
+
+        const order = await Order.find({userId:req.session.user}).sort({createdOn:-1}).skip(skip).limit(limit)|| [];
+        const totalOrders = await Order.countDocuments();
+        const totalPages = Math.ceil(totalOrders/limit);
         const user = await User.findById({_id:req.session.user})
         const addresses = await Address.findOne({ userId: req.session.user }) || [];
         const wallet = await Wallet.findOne({ userId: req.session.user }).populate("transactions.orderId");
-        res.render("userDashboard",{addresses:addresses.address,user:user,orders:order,wallet:wallet})
+        res.render("userDashboard",{addresses:addresses.address,user:user,orders:order,wallet:wallet,totalPages,totalOrders,page,skip,limit})
     } catch (error) {
         console.log(error)
     }

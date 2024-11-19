@@ -49,7 +49,7 @@ router.use(async (req, res, next) => {
 
 
 router.get("/pageNotFound", userController.pageNotFound)
-router.get("/", userController.loadHomepage);
+router.get("/",userController.loadHomepage);
 router.get("/shop",userController.loadShopPage)
 router.get("/getProducts", userController.getProducts)
 router.get("/signup", userController.loadSignup);

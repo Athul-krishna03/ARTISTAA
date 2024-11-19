@@ -109,7 +109,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6">
-                        <!-- Address Selection -->
+                     
                         <h4>Select Your Address</h4>
                         <% if (addresses) { %>
                             <% addresses.forEach((addr, i)=> { %>
@@ -392,7 +392,7 @@
                     return false;  
                 }
 
-                return true;  // Allow form submission for COD
+                return true;  
             }
             function applyCoupon() {
                 const couponCode = document.getElementById('couponCode').value.trim();

@@ -40,9 +40,9 @@ app.use(express.static("public"));
 app.use("/",userRouter);
 app.use("/admin",adminRouter);
 
-// app.use((req,res)=>{
-//     res.redirect("/pageNotFound")
-// })
+app.use((req,res)=>{
+    res.redirect("/pageNotFound")
+})
 
 app.listen(process.env.PORT,()=>{
     console.log("server Running");

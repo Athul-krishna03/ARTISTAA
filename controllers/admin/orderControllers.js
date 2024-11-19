@@ -37,11 +37,16 @@ const updateStatus = async (req, res) => {
 
 const getSalesReport = async (req,res) => {
     try {
-        const orderData = await Order.find().populate("userId").populate("orderedItems.product");
-        const count = await Order.find().countDocuments();
+        const page= (req.query.page) || 1;
+        const limit = 10;
+        const skip = (page-1)*limit;
+        const orderData = await Order.find().populate("userId").populate("orderedItems.product").sort({createdOn:-1}).skip(skip).limit(limit);
+        const count = await Order.countDocuments();
+        const totalPages =Math.ceil(count/limit);
+
         console.log(orderData)
         if(orderData){
-            res.render("salesreport",{orders:orderData,activePage:"sales-report",count:count})
+            res.render("salesreport",{orders:orderData,activePage:"sales-report",count:count,totalPages,page})
         }
     } catch (error) {
         console.log(error)

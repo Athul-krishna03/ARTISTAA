@@ -122,7 +122,7 @@
                                 <td data-customer-id="<%= orders[i].userId._id %>">
                                     <%= orders[i].userId.username %>
                                 </td>
-                                
+
                                 <td>
                                     <%= orders[i].userId.email %>
                                 </td>
@@ -170,9 +170,15 @@
         <div class="pagination-area my-4">
             <nav>
                 <ul class="pagination justify-content-center">
-                    <li class="page-item"><a class="page-link active" href="?page=1">1</a></li>
-                    <li class="page-item"><a class="page-link" href="?page=2">2</a></li>
-                    <li class="page-item"><a class="page-link" href="?page=3">3</a></li>
+                    <% for(let i=1;i<=totalPages;i++){ %>
+                        <li class="page-item <%= (i===page) ? 'active' : '' %>">
+                            <a class="page-link" style="z-index: 100;" href="?page=<%= i %>">
+                                <%= i %>
+                            </a>
+
+
+                        </li>
+                        <% } %>
                 </ul>
             </nav>
         </div>
@@ -187,8 +193,6 @@
         async function previewPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'pt', 'a4');
-
-
 
             const logoURL = '/uploads/banner/logo.png';
             doc.addImage(logoURL, 'PNG', 15, 10, 40, 40);
@@ -205,77 +209,72 @@
                 bodyStyles: { fontSize: 8, cellPadding: 3, minCellWidth: 45 },
                 styles: { overflow: 'linebreak', valign: 'middle', halign: 'center' },
                 columnStyles: {
-                    0: { cellWidth: 30, halign: 'center' }, // Sl No
-                    1: { cellWidth: 60, halign: 'left' },   // User Name
-                    2: { cellWidth: 80, halign: 'left' },   // Email
-                    3: { cellWidth: 80, halign: 'left' },   // Products
-                    4: { cellWidth: 40, halign: 'center' }, // Quantity
-                    5: { cellWidth: 50, halign: 'center' }, // Date
-                    6: { cellWidth: 60, halign: 'right' },  // Total Price
-                    7: { cellWidth: 60, halign: 'center' }, // Coupon Code
-                    8: { cellWidth: 60, halign: 'right' },  // Coupon Amount
-                    9: { cellWidth: 60, halign: 'right' },  // Final Amount
-                    10: { cellWidth: 60, halign: 'center' }, // Payment Method
-                    11: { cellWidth: 60, halign: 'center' } // Status
+                    0: { cellWidth: 30, halign: 'center' },
+                    1: { cellWidth: 50, halign: 'left' },
+                    2: { cellWidth: 40, halign: 'left' },
+                    3: { cellWidth: 40, halign: 'center' },
+                    4: { cellWidth: 40, halign: 'center' },
+                    5: { cellWidth: 40, halign: 'right' },
+                    6: { cellWidth: 40, halign: 'center' },
+                    7: { cellWidth: 40, halign: 'center' },
+                    8: { cellWidth: 40, halign: 'center' },
+                    9: { cellWidth: 40, halign: 'center' },
+                    10: { cellWidth: 40, halign: 'center' },
+                    11: { cellWidth: 40, halign: 'center' }
                 },
                 didParseCell: function (data) {
-                    if (data.cell.text === undefined || data.cell.text === null) {
-                        data.cell.text = ''; // Fallback for undefined or null cells
+                    if (!data.cell.text || data.cell.text.length === 0) {
+                        data.cell.text = '-';
+                        return;
                     }
-
-                    // Currency formatting for specific columns
-                    if ([6, 8, 9].includes(data.column.index)) {
-                        const cellText = Array.isArray(data.cell.text) ? data.cell.text.join(' ') : data.cell.text;
-                        const numericValue = parseFloat(cellText.replace(/[₹,]/g, ''));
-                        data.cell.text = !isNaN(numericValue) ? '₹' + numericValue.toLocaleString('en-IN') : cellText;
-                    }
+                 
                 },
+
                 willDrawCell: function (data) {
                     if (data.cell.text.length > 20) {
-                        data.cell.styles.fontSize = 6; // Adjust font size for readability
+                        data.cell.styles.fontSize = 4;
                     }
                 }
             });
 
-            // Get the PDF as a Blob
             const pdfBlob = doc.output('blob');
-
-            // Display the PDF preview in the modal
             showPDFPreview(pdfBlob);
         }
-
         async function showPDFPreview(pdfBlob) {
-            const pdfCanvas = document.getElementById('pdfCanvas');
-            const pdfCtx = pdfCanvas.getContext('2d');
+            try {
+                const pdfCanvas = document.getElementById('pdfCanvas');
+                const pdfCtx = pdfCanvas.getContext('2d');
 
-            const pdfData = await pdfBlob.arrayBuffer();
-            const pdfDocument = await pdfjsLib.getDocument({ data: pdfData }).promise;
-            const page = await pdfDocument.getPage(1);
+                const pdfData = await pdfBlob.arrayBuffer();
+                const pdfDocument = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                const page = await pdfDocument.getPage(1);
 
-            const viewport = page.getViewport({ scale: 1.2 }); // Slightly larger scale for readability
-            pdfCanvas.width = viewport.width;
-            pdfCanvas.height = viewport.height;
+                const viewport = page.getViewport({ scale: 1.3 });
+                pdfCanvas.width = viewport.width;
+                pdfCanvas.height = viewport.height;
 
-            await page.render({
-                canvasContext: pdfCtx,
-                viewport: viewport,
-            }).promise;
+                await page.render({
+                    canvasContext: pdfCtx,
+                    viewport: viewport,
+                }).promise;
 
-            $('#pdfPreviewModal').modal('show');
+                $('#pdfPreviewModal').modal('show');
+            } catch (error) {
+                console.error('Error showing PDF preview:', error);
+                alert('Failed to load PDF preview. Please try again.');
+            }
         }
+
 
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'pt', 'a4');
-
-            // Add content and download
             doc.save('sales-report.pdf');
         }
 
         function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'pt', 'a4');
-
             const logoURL = '/uploads/banner/logo.png';
             doc.addImage(logoURL, 'PNG', 15, 10, 40, 40);
             doc.setFontSize(16);
@@ -283,46 +282,44 @@
             doc.setFontSize(10);
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 70, 45);
 
+            const rupeeSymbol = '₹';
+            doc.setFont('CustomFont', 'normal');
+
             doc.autoTable({
                 html: '#salesTable',
                 startY: 60,
                 theme: 'grid',
-                headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], fontSize: 5 },
-                bodyStyles: { fontSize: 8, cellPadding: 3, minCellWidth: 50 },
+                headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255], fontSize: 8 },
+                bodyStyles: { fontSize: 6, cellPadding: 3, minCellWidth: 50 },
                 styles: { overflow: 'linebreak', valign: 'middle', halign: 'center' },
                 columnStyles: {
-                    0: { cellWidth: 30, halign: 'center' }, // Sl No
-                    1: { cellWidth: 60, halign: 'left' },   // User Name
-                    2: { cellWidth: 80, halign: 'left' },   // Email
-                    3: { cellWidth: 80, halign: 'left' },   // Products
-                    4: { cellWidth: 40, halign: 'center' }, // Quantity
-                    5: { cellWidth: 50, halign: 'center' }, // Date
-                    6: { cellWidth: 60, halign: 'right' },  // Total Price
-                    7: { cellWidth: 60, halign: 'center' }, // Coupon Code
-                    8: { cellWidth: 60, halign: 'right' },  // Coupon Amount
-                    9: { cellWidth: 60, halign: 'right' },  // Final Amount
-                    10: { cellWidth: 60, halign: 'center' }, // Payment Method
-                    11: { cellWidth: 60, halign: 'center' } // Status
+                    0: { cellWidth: 30, halign: 'center' },
+                    1: { cellWidth: 50, halign: 'left' },
+                    2: { cellWidth: 40, halign: 'left' },
+                    3: { cellWidth: 40, halign: 'center' },
+                    4: { cellWidth: 40, halign: 'center' },
+                    5: { cellWidth: 40, halign: 'right' },
+                    6: { cellWidth: 40, halign: 'center' },
+                    7: { cellWidth: 40, halign: 'center' },
+                    8: { cellWidth: 40, halign: 'center' },
+                    9: { cellWidth: 40, halign: 'center' },
+                    10: { cellWidth: 40, halign: 'center' },
+                    11: { cellWidth: 40, halign: 'center' }
                 },
                 didParseCell: function (data) {
                     if (data.cell.text === undefined || data.cell.text === null) {
-                        data.cell.text = ''; // Fallback for undefined or null cells
+                        data.cell.text = '';
                     }
 
-                    if ([6, 8, 9].includes(data.column.index)) {
-                        const cellText = Array.isArray(data.cell.text) ? data.cell.text.join(' ') : data.cell.text;
-                        const numericValue = parseFloat(cellText.replace(/[₹,]/g, ''));
-                        data.cell.text = !isNaN(numericValue) ? '₹' + numericValue.toLocaleString('en-IN') : cellText;
-                    }
                 },
                 willDrawCell: function (data) {
                     if (data.cell.text.length > 20) {
-                        data.cell.styles.fontSize = 6;
+                        data.cell.styles.fontSize = 5;
                     }
                 }
             });
 
-
+            // Save the PDF
             doc.save('sales-report.pdf');
         }
 
@@ -351,7 +348,7 @@
                     currency: 'INR',
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
-                }).replace('INR', '₹');
+                }).replace('₹', 'INR');
             }
 
             function filterTable() {

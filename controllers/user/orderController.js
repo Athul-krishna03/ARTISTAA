@@ -15,48 +15,53 @@ const createOrder = async (req, res) => {
     try {
         const user = await User.findById({ _id: req.session.user });
         const { singleProduct, cart, totalPrice, discount, finalAmount, address, couponCode, payment_option, cartData, singleProductId, singleProductQuantity } = req.body;
-        
-        if (cartData && Object.values(cartData).length > 0) {
-            for (const item of Object.values(cartData)) {
-                const productId = item.productId;
-                const quantity = item.quantity;
-                await Product.findByIdAndUpdate(
-                    { _id: productId },
-                    { $inc: { quantity: -quantity } }
+
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode });
+            if (coupon) {
+                if (coupon.userId.includes(user._id)) {
+                    return res.status(400).send("You have already used this coupon.");
+                }
+                await Coupon.findOneAndUpdate(
+                    { code: couponCode },
+                    { $push: { userId: user._id } }
                 );
-                console.log(`Cart Product ID: ${productId}, Quantity: ${quantity}`);
             }
         }
+
+        if (cartData && Object.values(cartData).length > 0) {
+            for (const item of Object.values(cartData)) {
+                await Product.findByIdAndUpdate(
+                    { _id: item.productId },
+                    { $inc: { quantity: -item.quantity } }
+                );
+            }
+        }
+
         if (singleProductId && singleProductQuantity) {
-           
-            const quantity = parseInt(singleProductQuantity, 10);
             await Product.findByIdAndUpdate(
                 { _id: singleProductId },
-                { $inc: { quantity: -quantity } } 
+                { $inc: { quantity: -parseInt(singleProductQuantity, 10) } }
             );
-            console.log(`Single Product ID: ${singleProductId}, Quantity: ${quantity}`);
         }
 
         let orderedItems = [];
-        let product = singleProduct ? JSON.parse(singleProduct) : null;
-        let cartItems = cart ? JSON.parse(cart) : [];
-        if (product) {
+        if (singleProduct) {
+            const product = JSON.parse(singleProduct);
             orderedItems.push({
                 product: product._id,
                 quantity: 1,
                 totalPrice: product.salePrice,
             });
-        } else if (cartItems && cartItems.length > 0) {
+        } else if (cart) {
+            const cartItems = JSON.parse(cart);
             orderedItems = cartItems.map(item => ({
                 product: item.productId,
                 quantity: item.quantity,
                 totalPrice: item.totalPrice,
             }));
-        } else {
-            return res.status(400).send("No products selected for the order.");
         }
-        
-        console.log("tp:", totalPrice, "dis:", discount);
+
         const newOrder = new Order({
             userId: user._id,
             orderedItems,
@@ -66,25 +71,24 @@ const createOrder = async (req, res) => {
             address,
             paymentMethod: payment_option,
             couponCode,
-            couponApplied:couponCode ? true:false,
+            couponApplied: couponCode ? true : false,
             status: 'Pending',
             createdOn: Date.now(),
-            invoiceDate: new Date()
+            invoiceDate: new Date(),
         });
 
         await newOrder.save();
         user.orderHistory.push(newOrder._id);
         await user.save();
-        console.log("saved");
-        
-       
+
+
         return res.render("orderSuccess", { orderId: newOrder._id });
-       
     } catch (error) {
         console.error('Error creating order:', error);
         res.status(500).send('Internal Server Error');
     }
 };
+
 
 const getOrderDetails = async (req, res) => {
     try {
@@ -165,6 +169,9 @@ const applyCoupon = async (req, res) => {
         if (!coupon) {
             return res.status(400).json({ success: false, message: "Coupon not Found" })
         }
+        if(coupon.userId.includes(req.session.user)){
+            return res.status(400).json({ success: false, message: "coupon is  already used" })
+        }
         if (new Date() > coupon.expireOn) {
             return res.status(400).json({ success: false, message: "coupon is expired" })
         }
@@ -174,7 +181,7 @@ const applyCoupon = async (req, res) => {
         const discountAmount = (total * coupon.offerPercentage) / 100;
         const newTotal = total - discountAmount;
 
-        // coupon.userId.push(req.user._id);
+        
        console.log("dis",discountAmount,"total",newTotal)
         return res.status(200).json({
             success: true,

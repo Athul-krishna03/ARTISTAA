@@ -118,8 +118,8 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="offer-price" class="form-label">Offer Price</label>
-                                    <input type="number" id="offer-percentage" name="offerPercentage" class="form-control"
-                                        required>
+                                    <input type="number" id="offer-percentage" name="offerPercentage"
+                                        class="form-control" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="minimum-price" class="form-label">Minimum Price</label>
@@ -135,7 +135,9 @@
 
             <div class="card-container">
                 <% coupons.forEach((coupon)=> { %>
-                    <div class="coupon-card <%= coupon.isList ? 'listed' : 'unlisted' %>">
+                    <div class="coupon-card 
+    <%= coupon.isList ? 'listed' : 'unlisted' %> 
+    <%= new Date(coupon.expireOn) < new Date() ? 'expired' : '' %>">
                         <div class="coupon-code">
                             <%= coupon.code %>
                         </div>
@@ -146,26 +148,25 @@
                             <div><strong>Expire Date:</strong>
                                 <%= new Date(coupon.expireOn).toLocaleDateString() %>
                             </div>
-                            <div><strong>Offer Percentage:</strong> <%= coupon.offerPercentage %>%
+                            <div><strong>Offer Percentage:</strong>
+                                <%= coupon.offerPercentage %>%
                             </div>
                             <div><strong>Minimum Price:</strong> ₹<%= coupon.minimumPrice %>
                             </div>
                         </div>
-
-                        <div class="btn-container">
-                            <% if (coupon.isList) { %>
-                                <button class="btn-small btn-unlist"
-                                    onclick="toggleCoupon('<%= coupon._id %>', false)">Unlist</button>
-                                <% } else { %>
-                                    <button class="btn-small btn-list"
-                                        onclick="toggleCoupon('<%= coupon._id %>', true)">List</button>
-                                    <% } %>
-                        </div>
                     </div>
+
                     <% }) %>
             </div>
 
             <style>
+                .expired {
+                    background-color: #fc0015;
+                    border-color: #f5c6cb;
+                    color: #721c24;
+                    opacity: 0.7;
+                }
+
                 .listed {
                     background-color: #d4edda;
                     border-color: #c3e6cb;
@@ -236,7 +237,7 @@
                                 timer: 2000,
                                 showConfirmButton: false
                             }).then(() => {
-                                
+
                                 const addCouponModal = document.getElementById('addCouponModal');
                                 const modalInstance = bootstrap.Modal.getInstance(addCouponModal);
                                 if (modalInstance) modalInstance.hide();

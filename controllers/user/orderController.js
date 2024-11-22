@@ -5,6 +5,9 @@ const Address = require("../../models/addressSchema");
 const Coupon = require("../../models/couponSchema");
 const { loadShopping } = require("./userController");
 const Wallet = require("../../models/walletSchema");
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 const { Transaction } = require("mongodb");
 const { trusted } = require("mongoose");
 
@@ -14,21 +17,27 @@ const { trusted } = require("mongoose");
 const createOrder = async (req, res) => {
     try {
         const user = await User.findById({ _id: req.session.user });
-        const { singleProduct, cart, totalPrice, discount, finalAmount, address, couponCode, payment_option, cartData, singleProductId, singleProductQuantity } = req.body;
+        const data=req.body.formData?req.body.formData:req.body;
+        console.log("create order data:",data)
+        const { singleProduct, cart, totalPrice, discount, finalAmount, address, couponCode, payment_option, cartData, singleProductId, singleProductQuantity } = data;
 
+      
         if (couponCode) {
             const coupon = await Coupon.findOne({ code: couponCode });
             if (coupon) {
                 if (coupon.userId.includes(user._id)) {
-                    return res.status(400).send("You have already used this coupon.");
+                    return res.status(400).json({success:"false",message:"You have already used this coupon."});
                 }
                 await Coupon.findOneAndUpdate(
                     { code: couponCode },
                     { $push: { userId: user._id } }
                 );
             }
+            console.log("coupon applied");
+            
         }
 
+       
         if (cartData && Object.values(cartData).length > 0) {
             for (const item of Object.values(cartData)) {
                 await Product.findByIdAndUpdate(
@@ -46,8 +55,8 @@ const createOrder = async (req, res) => {
         }
 
         let orderedItems = [];
-        if (singleProduct) {
-            const product = JSON.parse(singleProduct);
+        const product = singleProduct ? JSON.parse(singleProduct):null;
+        if (product && product._id) {
             orderedItems.push({
                 product: product._id,
                 quantity: 1,
@@ -61,6 +70,13 @@ const createOrder = async (req, res) => {
                 totalPrice: item.totalPrice,
             }));
         }
+        let payment_status;
+        if(payment_option=="COD"){
+            payment_status = "COD"
+            
+        }else{
+            payment_status = "pending"
+        }
 
         const newOrder = new Order({
             userId: user._id,
@@ -70,19 +86,29 @@ const createOrder = async (req, res) => {
             finalAmount,
             address,
             paymentMethod: payment_option,
+            payment_status:payment_status,
             couponCode,
             couponApplied: couponCode ? true : false,
             status: 'Pending',
             createdOn: Date.now(),
             invoiceDate: new Date(),
         });
+        if(!newOrder){
+            console.log("order not placed");
+            
+        }
 
         await newOrder.save();
         user.orderHistory.push(newOrder._id);
         await user.save();
+        console.log("address of order:",address,"newOrder:",newOrder);
+
+      
+
+        payment_option == "online" ?  res.status(200).json({success:"true",orderId: newOrder._id}):res.render("orderSuccess", { orderId: newOrder._id });
 
 
-        return res.render("orderSuccess", { orderId: newOrder._id });
+        // return res.render("orderSuccess", { orderId: newOrder._id });
     } catch (error) {
         console.error('Error creating order:', error);
         res.status(500).send('Internal Server Error');
@@ -193,12 +219,190 @@ const applyCoupon = async (req, res) => {
     }
 }
 
+const orderSuccess =async (req, res) => {
+    const { orderId } = req.query;
+    res.render('orderSuccess', { orderId });
+}
 
+
+
+
+const getInvoice = async (req, res) => {
+    const orderId = req.query.id;
+
+    try {
+        // Fetch order details with user and product information
+        const order = await Order.findById(orderId)
+            .populate('userId', 'name email') // Populates user's name and email
+            .populate('orderedItems.product', 'productName salePrice'); // Populates product details
+
+        if (!order) {
+            return res.status(404).send("Order not found.");
+        }
+
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+        // Set headers for PDF download
+        const fileName = `invoice-${orderId}.pdf`;
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+
+        // Pipe the PDF document to the response
+        doc.pipe(res);
+
+        // Sophisticated Color Palette
+        const colors = {
+            primary: '#1A2238',     // Deep Navy Blue
+            secondary: '#16213E',   // Darker Navy
+            accent: '#0F3460',      // Rich Blue
+            highlight: '#E94560',   // Vibrant Coral Red
+            text: '#0F1123',        // Almost Black
+            background: '#F5F5F5',  // Light Gray Background
+            border: '#414757'       // Slate Gray
+        };
+
+        // Background Watermark Effect
+        doc.save()
+            .fillColor(colors.background)
+            .rect(50, 50, 500, 700)
+            .fill()
+            .restore();
+
+        // Decorative Header
+        doc.lineWidth(0.5)
+            .fillColor(colors.primary)
+            .rect(50, 50, 500, 80)
+            .fill();
+
+        // Company Details with Elegant Typography
+        doc.fillColor('white')
+            .font('Helvetica-Bold')
+            .fontSize(16)
+            .text('ARTISTAA', 70, 75)
+            .font('Helvetica')
+            .fontSize(10)
+            .text('Pvt Ltd | Innovative Designs', 70, 95)
+            .text('GST: 07AATCA2480C1Z0', 70, 110, { color: colors.highlight });
+
+        // Invoice Header with Subtle Design
+        doc.fillColor(colors.text)
+            .font('Helvetica-Bold')
+            .fontSize(24)
+            .text('TAX INVOICE', 0, 180, { align: 'center' });
+
+        // Elegant Invoice Details Box
+        doc.strokeColor(colors.border)
+            .lineWidth(1)
+            .rect(350, 230, 210, 120)
+            .stroke();
+
+        doc.fillColor(colors.text)
+            .font('Helvetica')
+            .fontSize(10)
+            .text(`Invoice Number: INV-${orderId.slice(-8)}`, 360, 240)
+            .text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`, 360, 255)
+            .text(`Order ID: ${orderId}`, 360, 270)
+            .text(`Payment Status: Paid`, 360, 285);
+
+        // Billing Details with Elegant Formatting
+        doc.font('Helvetica-Bold')
+            .fontSize(12)
+            .fillColor(colors.primary)
+            .text(`Bill To:`, 50, 280)
+            .font('Helvetica')
+            .fontSize(10)
+            .fillColor(colors.text)
+            .text(`${order.userId.name || 'Customer'}`, 50, 300)
+            .text(`Email: ${order.userId.email}`, 50, 315);
+
+        // Table with Sophisticated Design
+        const tableTop = 380;
+        doc.font('Helvetica-Bold')
+            .fontSize(10)
+            .fillColor('white')
+            .fillColor(colors.accent)
+            .rect(50, tableTop - 20, 500, 25)
+            .fill();
+
+        doc.fillColor('white')
+            .text('Description', 50, tableTop - 15)
+            .text('Quantity', 300, tableTop - 15)
+            .text('Unit Price (₹)', 400, tableTop - 15)
+            .text('Total (₹)', 500, tableTop - 15);
+
+        // Table Rows
+        doc.font('Helvetica')
+            .fontSize(10)
+            .fillColor(colors.text);
+
+        let yPosition = tableTop + 20;
+        let subtotal = 0;
+
+        order.orderedItems.forEach(item => {
+            const itemTotal = item.product.salePrice * item.quantity;
+            subtotal += itemTotal;
+
+            doc.text(item.product.productName, 50, yPosition)
+                .text(item.quantity.toString(), 300, yPosition)
+                .text(`₹${item.product.salePrice.toFixed(2)}`, 400, yPosition)
+                .text(`₹${itemTotal.toFixed(2)}`, 500, yPosition);
+
+            yPosition += 20;
+        });
+
+        // Total Calculation with Highlight
+        doc.lineWidth(1)
+            .strokeColor(colors.border)
+            .moveTo(50, yPosition + 10)
+            .lineTo(550, yPosition + 10)
+            .stroke();
+
+        doc.font('Helvetica-Bold')
+            .fillColor(colors.highlight)
+            .fontSize(12)
+            .text('Subtotal', 400, yPosition + 20)
+            .text(`₹${subtotal.toFixed(2)}`, 500, yPosition + 20);
+
+        // GST Calculation
+        const tax = subtotal * 0.18;
+        doc.fillColor(colors.text)
+            .text('GST (18%)', 400, yPosition + 40)
+            .text(`₹${tax.toFixed(2)}`, 500, yPosition + 40);
+
+        // Total with Prominent Styling
+        doc.font('Helvetica-Bold')
+            .fontSize(14)
+            .fillColor(colors.highlight)
+            .text('TOTAL', 400, yPosition + 60)
+            .text(`₹${(subtotal + tax).toFixed(2)}`, 500, yPosition + 60);
+
+        // Creative Footer
+        doc.font('Helvetica')
+            .fontSize(8)
+            .fillColor(colors.secondary)
+            .text('Thank you for choosing Artistaa - Where Creativity Meets Quality', 50, 750, { align: 'center' })
+            .text('This is a computer-generated invoice', 50, 760, { align: 'center' });
+
+        // Decorative border
+        doc.lineWidth(0.5)
+            .strokeColor(colors.border)
+            .rect(40, 40, 520, 770)
+            .stroke();
+
+        // Finalize the PDF
+        doc.end();
+    } catch (error) {
+        console.error("Error generating invoice:", error);
+        res.status(500).send("Error generating invoice.");
+    }
+};
 
 module.exports = {
     createOrder,
     getOrderDetails,
     cancelOrder,
     applyCoupon,
+    orderSuccess,
+    getInvoice
     
 }

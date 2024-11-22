@@ -14,7 +14,33 @@ const getOrderDetails = async (req, res) => {
         console.log(error, "error in getting order detials")
     }
 }
+const getOrderDetailsView = async (req, res) => {
+    try {
 
+        const orderId = req.query.id;
+        const orderDetails = await Order.findOne({ orderId: orderId })
+            .populate('orderedItems.product')
+            .lean();
+
+        if (!orderDetails) {
+            return res.status(404).render("pageNotFound");
+        }
+
+        const addresses = await Address.findOne({ userId: orderDetails.userId });
+
+        const address = addresses?.address.find(address => address._id.toString() === orderDetails.address.toString());
+
+        res.render("orderView", {
+            order: orderDetails,
+            address: address || {},
+            activePage:"orders"
+
+        });
+    } catch (error) {
+        console.error('Error retrieving order details:', error);
+        res.status(500).redirect("/pageNotFound");
+    }
+};
 const updateStatus = async (req, res) => {
     try {
         const { id, status } = req.query;
@@ -56,5 +82,6 @@ const getSalesReport = async (req,res) => {
 module.exports = {
     getOrderDetails,
     updateStatus,
-    getSalesReport
+    getSalesReport,
+    getOrderDetailsView
 }

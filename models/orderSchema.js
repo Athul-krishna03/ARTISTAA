@@ -39,6 +39,10 @@ const orderSchema= new Schema({
        type:String,
        
     },
+    payment_status:{
+        type:String,
+    }
+    ,
     discount:{
         type:Number,
         default:0

@@ -1,4 +1,5 @@
 const Wishlist = require("../../models/wishlistSchema");
+const Coupon = require("../../models/couponSchema")
 
 
 
@@ -83,11 +84,26 @@ const removeFromWishlist = async (req, res) => {
     }
 };
 
+const getcouponList = async (req,res) => {
+    try {
+        const userId = req.session.user
+        const coupon = await Coupon.find();
+        const coupons = coupon.filter(coupon => !coupon.userId.includes(userId));
 
+        if(coupon){
+            return res.render("couponListing",{coupons:coupons})
+        }
+        console.log(coupons)
+    } catch (error) {
+        console.log("coupon get error",error);
+        return res.redirect("/pageNotFound");
+    }
+}
 
 module.exports={
     getWishlist,
     addWishlist,
     removeFromWishlist,
-    checkWishlist
+    checkWishlist,
+    getcouponList
 }

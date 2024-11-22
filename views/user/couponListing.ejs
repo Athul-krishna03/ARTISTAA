@@ -1,0 +1,216 @@
+<%- include('../partials/user/header') %>
+    <title>Gift Card Coupons</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffffff;
+            padding: 20px;
+        }
+
+        .coupons-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .coupon-card {
+            background: white;
+            border-radius: 12px;
+            border: 2px dashed #070707;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+            position: relative;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .coupon-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        }
+
+        .gift-card-pattern {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 30px;
+            background: repeating-linear-gradient(
+                45deg,
+                #f0f0f0,
+                #f0f0f0 10px,
+                #e0e0e0 10px,
+                #e0e0e0 20px
+            );
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        .discount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #148d38;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .code-container {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .code {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            color: #333;
+            letter-spacing: 2px;
+            user-select: none;
+        }
+
+        .copy-btn {
+            background: #000000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #0e5e26;
+        }
+
+        .expiry {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .minimum-price {
+            font-size: 14px;
+            color: #0a700a;
+            margin-top: 10px;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
+
+        .copied-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #148d38;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    <div class="coupons-container">
+        <% 
+      
+        const activeCoupons = coupons.filter(function(coupon) {
+            const currentDate = new Date();
+            const expireDate = new Date(coupon.expireOn);
+            return expireDate > currentDate;
+        });
+
+        activeCoupons.forEach(function(coupon) { 
+            const createdOn = new Date(coupon.createdOn).toLocaleDateString();
+            const expireOn = new Date(coupon.expireOn).toLocaleDateString();
+        %>
+            <div class="coupon-card" onclick="copyCode('<%= coupon.code %>')">
+                <div class="gift-card-pattern"></div>
+                <div class="discount"><%= coupon.offerPercentage %>% OFF</div>
+                <div class="description">Discount Gift Card</div>
+                <div class="code-container">
+                    <span class="code"><%= coupon.code %></span>
+                </div>
+                <button class="copy-btn">Copy Coupon Code</button>
+                <div class="minimum-price">Minimum Purchase: ₹<%= coupon.minimumPrice %></div>
+                <div class="expiry">Valid from <%= createdOn %> to <%= expireOn %></div>
+            </div>
+        <% }); %>
+    </div>
+        
+    <div class="copied-alert" id="copied-alert">
+        Coupon Code Copied!
+    </div>
+
+    <script>
+        function copyCode(code) {
+            var tempInput = document.createElement('textarea');
+            tempInput.value = code;
+            document.body.appendChild(tempInput);
+            
+          
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); 
+            
+            // Copy the text
+            document.execCommand('copy');
+            
+            document.body.removeChild(tempInput);
+       
+            var alert = document.getElementById('copied-alert');
+            alert.style.display = 'block';
+        
+            setTimeout(function() {
+                alert.style.display = 'none';
+            }, 2000);
+        }
+
+        document.querySelectorAll('.coupon-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                var code = this.querySelector('.code').textContent;
+                copyCode(code);
+            });
+        });
+    </script>
+<%- include('../partials/user/footer') %>

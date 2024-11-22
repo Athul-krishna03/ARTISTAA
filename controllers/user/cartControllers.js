@@ -14,11 +14,12 @@ const showCart = async (req, res) => {
             return res.status(404).redirect("/login");
         }
         const cart = await Cart.findOne({ userId }).populate("items.productId") || [];
-
+        const activeItems = cart.items.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
+        cart.items=activeItems;
         if (!cart) {
             return res.status(404).render("cart", { user: user, cartTotal: 0 });
         }
-      
+        
         const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
 
         res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
@@ -134,16 +135,17 @@ const getCheckOut = async (req, res) => {
           
             const cartItems = await Cart.findOne({ userId }).populate('items.productId');
             if (!cartItems || cartItems.items.length === 0) {
-                return res.render('checkout', { cart: null, products: [], addresses: addresses.address, totalPrice: 0, product: null, user });
+                return res.render('checkout', { cart: null, addresses: addresses.address, totalPrice: 0, product: null, user });
             }
             
-            const activeItems = cartItems.items.filter(item => item.productId && !item.productId.isBlocked);
+            const activeItems = cartItems.items.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
             if (activeItems.length === 0) {
-                return res.render('checkout', { cart: null, products: [], addresses: addresses.address, totalPrice: 0, product: null, user });
+                return res.render('checkout', { cart: null,  addresses: addresses.address, totalPrice: 0, product: null, user });
             }
+            console.log("acct",activeItems)
 
             totalPrice = activeItems.reduce((sum, item) => sum + item.totalPrice, 0);
-            return res.render('checkout', { cart: cartItems, products: activeItems, addresses: addresses.address, totalPrice, product: null, user });
+            return res.render('checkout', { cart: cartItems, addresses: addresses.address, totalPrice, product: null, user });
         }
     } catch (error) {
         console.error(error);

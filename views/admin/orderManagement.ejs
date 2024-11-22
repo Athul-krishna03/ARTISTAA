@@ -45,6 +45,8 @@
                                 <th scope="col">Total</th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Date</th>
+                                <th scope="col">view Order</th>
+                                
                                 <th scope="col" class="text-end"> Action </th>
                             </tr>
                         </thead>
@@ -70,6 +72,8 @@
                                             </span>
                                         </td>
                                         <td><%= order.createdOn.toLocaleDateString() %></td>
+                                        <td><a href="/admin/order-details?id=<%= order.orderId %>"
+                                            class="btn-small d-block">View</a></td>
                                         <td class="text-end">
                                             <div class="dropdown">
                                                 <a href="#" 

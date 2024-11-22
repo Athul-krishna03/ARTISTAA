@@ -121,7 +121,9 @@
                 timer: 1500,
                 position: 'center',
                 
-            });
+            }).then(()=>{
+                location.reload();
+            })
         } else {
             Swal.fire({
                 icon: 'error',

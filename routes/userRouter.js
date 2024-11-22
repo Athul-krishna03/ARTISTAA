@@ -95,21 +95,23 @@ router.get("/checkout", auth.userAuth,cartController.getCheckOut);
 router.post("/updateQuantity", auth.userAuth,cartController.updateQty)
 
 router.post("/place-order",  auth.userAuth,orderController.createOrder);
-router.get('/order-success/:orderId', async (req, res) => {
-  const { orderId } = req.params;
-  res.render('orderSuccess', { orderId });
-});
+router.get('/order-success', auth.userAuth,orderController.orderSuccess);
+router.get('/download-invoice',auth.userAuth,orderController.getInvoice);
 
 router.get("/order-details", auth.userAuth, orderController.getOrderDetails);
 router.get("/order-cancel", auth.userAuth, orderController.cancelOrder);
 
 router.post("/apply-coupon",auth.userAuth,orderController.applyCoupon);
 router.post("/createPayment",auth.userAuth,paymentController.createPayment);
+router.post("/updatePayment",auth.userAuth,paymentController.updatePaymentStatus);
+router.post("/retry-payment",auth.userAuth,paymentController.retryPayment)
 
 router.get("/wishlist",auth.userAuth,wishlistController.getWishlist);
 router.get("/addWishlist",auth.userAuth,wishlistController.addWishlist);
 router.post("/removeWishlist",auth.userAuth,wishlistController.removeFromWishlist);
-router.get("/checkWishlist",auth.userAuth,wishlistController.checkWishlist)
+router.get("/checkWishlist",auth.userAuth,wishlistController.checkWishlist);
+
+router.get("/coupons",auth.userAuth,wishlistController.getcouponList)
 
 
 module.exports = router;

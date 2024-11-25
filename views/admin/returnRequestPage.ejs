@@ -1,0 +1,93 @@
+<%- include("../../views/partials/admin/header") %>
+
+<div class="container mt-4">
+    <h1 class="text-center">Return Requests</h1>
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Requested On</th>
+                            <th>order View</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (returnRequests && returnRequests.length > 0) { %>
+                            <% returnRequests.forEach((request) => { %>
+                                <tr>
+                                    <td><%= request._id %></td>
+                                    <td><%= request.orderId %></td>
+                                    <td><%= request.userId.username %></td>
+                                  
+                                    <td><%= request.reason %></td>
+                                    <td><%= request.status %></td>
+                                    <td><%= new Date(request.createdAt).toLocaleDateString() %></td>
+                                    <td><a href="/admin/order-details?id=<%= request.orderId %>"
+                                        class="btn-small d-block">View</a></td>
+                                    <td>
+                                        <% if (request.status === "Pending") { %>
+                                            <button class="btn btn-success btn-sm" onclick="updateRequestStatus('<%= request._id %>', 'Approved')">Approve</button>
+                                            <button class="btn btn-danger btn-sm" onclick="updateRequestStatus('<%= request._id %>', 'Rejected')">Reject</button>
+                                        <% } else if(request.status=="Approved"){ %>
+                                            <span class="badge badge-info" style="color: green;"><%= request.status %></span>
+                                        <% }  else{ %>
+                                            <span class="badge badge-info" style="color: rgb(255, 0, 0);"><%= request.status %></span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="8" class="text-center">No return requests found</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateRequestStatus(requestId, status) {
+        Swal.fire({
+            title: `Are you sure you want to ${status.toLowerCase()} this request?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            cancelButtonText: "No"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/admin/update-return-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ requestId, status })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Success', `Request ${status.toLowerCase()}ed successfully!`, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', 'Failed to update request status. Please try again.', 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Error', 'An unexpected error occurred.', 'error');
+                });
+            }
+        });
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+

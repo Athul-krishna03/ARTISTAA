@@ -65,6 +65,8 @@ router.post("/deleteImage",auth.adminAuth,productController.deleteSingleImage);
 router.get("/orders",auth.adminAuth,orderController.getOrderDetails);
 router.get("/order-details", auth.adminAuth, orderController.getOrderDetailsView);
 router.get("/statusUpdate",auth.adminAuth,orderController.updateStatus);
+router.get("/returnRequests",auth.adminAuth,orderController.getReturnRequest);
+router.post("/update-return-status",auth.adminAuth,orderController.updateReturnRequest)
 
 router.get("/stock",auth.adminAuth,productController.stockDetials);
 router.post("/updateStock",auth.adminAuth,productController.updateStock);

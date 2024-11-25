@@ -210,9 +210,13 @@
                                                                 <td colspan="2" id="discountAmount">0</td>
                                                             </tr>
                                                             <tr>
+                                                                <th>Delivery</th>
+                                                                <td colspan="2" id="discountAmount">40</td>
+                                                            </tr>
+                                                            <tr>
                                                                 <th>Total</th>
                                                                 <td colspan="2" id="totalAmount">
-                                                                    <%= totalPrice.toLocaleString() %>
+                                                                    <%= (totalPrice+40).toLocaleString() %>
                                                                 </td>
                                                             </tr>
                                 </tbody>
@@ -235,7 +239,7 @@
                                     <div class="payment_option">
                                         <input type="hidden" name="discount" id="discount" value="0">
                                         <input type="hidden" name="finalAmount" id="finalAmount"
-                                            value="<%= totalPrice %>">
+                                            value="<%= totalPrice+40%>">
                                         <input type="hidden" name="couponCode" id="code" value="0">
                                         <div class="custome-radio" id="cod">
                                             <input class="form-check-input" required type="radio" name="payment_option"
@@ -503,11 +507,11 @@
                     return false;
                 }
 
-                return false;
+                return true;
             }
             function applyCoupon() {
                 const couponCode = document.getElementById('couponCode').value.trim();
-                const totalPrice = document.getElementById('subtotal').innerText.replace(/,/g, '').trim();
+                const totalPrice = document.getElementById('totalAmount').innerText.replace(/,/g, '').trim();
 
                 if (!couponCode) {
                     Swal.fire({

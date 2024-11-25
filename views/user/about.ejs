@@ -50,13 +50,14 @@
   }
 
   .team-grid {
-    display: grid;
-    
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 30px;
-    margin-top: 20px;
-    margin-left: 250px;
-  }
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  justify-content: center;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
 
   .team-member {
     background-color: #f8f9fa;
@@ -94,7 +95,7 @@
       <p class="about-description">
         At Artistaa, we believe in the power of art to inspire and transform. Our curated collection of art products, including paintings, sculptures, and handcrafted items, is designed to bring beauty and creativity into your life. Each product is carefully selected, ensuring that it meets the highest standards of craftsmanship and artistic expression. Whether you're an art enthusiast or simply looking to add a touch of elegance to your home, Artistaa offers something special for every taste and style.
       </p>
-      <img class="about-image" src="/uploads/about-us-banner.jpg" alt="About Artistaa">
+      <img class="about-image" src="/uploads/banner/about.webp" alt="About Artistaa">
     </div>
   </section>
 
@@ -102,27 +103,35 @@
     <h2 class="team-title">Meet Our Team</h2>
     <div class="team-grid">
       <div class="team-member">
-        <img src="/uploads/team/member1.jpg" alt="Team Member 1">
-        <h3>John Doe</h3>
+        <img src="/uploads/banner/shanuu.jpg" alt="Team Member 1">
+        <h3>Shanu Simon</h3>
         <p>Founder & CEO</p>
-        <p>John is the visionary behind Artistaa, bringing his passion for art to the forefront of the company.</p>
+        <p>Shanu is the visionary behind Artistaa, bringing his passion for art to the forefront of the company.</p>
       </div>
-
+  
       <div class="team-member">
-        <img src="/uploads/team/member2.jpg" alt="Team Member 2">
-        <h3>Jane Smith</h3>
+        <img src="/uploads/banner/me.jpg" alt="Team Member 2">
+        <h3>Athul</h3>
         <p>Art Director</p>
-        <p>Jane oversees the curation of our art collections, ensuring that each piece resonates with creativity and elegance.</p>
+        <p>Athul oversees the curation of our art collections, ensuring that each piece resonates with creativity and elegance.</p>
       </div>
-
+  
       <div class="team-member">
-        <img src="/uploads/team/member3.jpg" alt="Team Member 3">
-        <h3>Emily Brown</h3>
+        <img src="/uploads/banner/joel.jpg" alt="Team Member 3">
+        <h3>Joel Johnson</h3>
         <p>Customer Relations</p>
-        <p>Emily is the friendly face of Artistaa, helping customers find the perfect art products and providing exceptional service.</p>
+        <p>Joel is the friendly face of Artistaa, helping customers find the perfect art products and providing exceptional service.</p>
+      </div>
+  
+      <div class="team-member">
+        <img src="/uploads/banner/vishnu.jpg" alt="Team Member 4">
+        <h3>Vishnu</h3>
+        <p>Marketing Lead</p>
+        <p>Vishnu crafts strategies to showcase Artistaa’s offerings, connecting art with its admirers worldwide.</p>
       </div>
     </div>
   </section>
+  
 </main>
 
 <%- include("../partials/user/footer.ejs") %>

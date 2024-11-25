@@ -4,12 +4,11 @@
         <!-- Order Details Section -->
         <section class="order-details-section position-relative pt-50">
             <div class="container">
-                <!-- Return to Orders Link -->
+                
                 <div class="return-link mb-4">
                     <a href="/orders" class="text-muted"><i class="fi-rs-angle-left"></i> Return to Orders</a>
                 </div>
 
-                <!-- Store and Order Summary -->
                 <div class="store-order-summary d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="store-name">ARTISTAA</h2>
@@ -35,7 +34,6 @@
                     </div>
                 </div>
 
-                <!-- Retry Payment Section -->
                 <% if (order.payment_status==="Payment failed" ) { %>
                     <div class="payment-retry card mb-4">
                         <div class="card-body text-center">
@@ -48,7 +46,6 @@
                     </div>
                     <% } %>
 
-                        <!-- Shipment Status -->
                         <div class="shipment-status card mb-4">
                             <div class="card-body d-flex justify-content-between align-items-center">
                                 <div>
@@ -150,10 +147,10 @@
 
                 if (response.ok && result.success) {
                     const options = {
-                        key: result.key, // Razorpay Key ID
-                        amount: result.amount, // Amount in paise
+                        key: result.key, 
+                        amount: result.amount, 
                         currency: result.currency,
-                        order_id: result.razorpayOrderId, // Razorpay Order ID
+                        order_id: result.razorpayOrderId, 
                         name: "ARTISTAA",
                         description: "Order Payment",
                         handler: async function (response) {
@@ -183,7 +180,7 @@
                                     confirmButtonText: 'Okay',
                                     confirmButtonColor: '#007bff',
                                 }).then(() => {
-                                    window.location.reload();
+                                    window.location.href = `/order-success/?orderId=${orderId}`;
                                 })
                                 
                             } else {

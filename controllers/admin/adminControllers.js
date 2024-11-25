@@ -9,11 +9,12 @@ const pageerror=async(req,res)=>{
 
 const loadlogin=async (req,res) => {
     try {
+        const message=req.query.message || null;
+
         if(req.session.admin){
             return res.redirect("/admin")
         }
-        // console.log("hi")
-        return res.render("admin-login");
+        return res.render("admin-login",{message:message});
     } catch (error) {
         console.error("adminLogin error",error.message);
         
@@ -30,10 +31,10 @@ const login =async (req,res) => {
                 return res.redirect("/admin");
 
             }else{
-                return res.redirect("/admin/login")
+                return res.redirect("/admin/login?message=Invaild Ceredentials")
             }
         }else{
-            return res.redirect("/admin/login")
+            return res.redirect("/admin/login?message=Invaild Ceredentials")
         }
     } catch (error) {
         console.error("login error",error.message)
@@ -56,18 +57,6 @@ const loadDashboard = async (req, res) => {
         res.redirect('/pageNotFouond')
     }
 }
-// const loadDashboard=async (req,res) => {
-//     try {
-//         console.log("admin sesssion:",req.session)
-//         if(req.session.admin){
-//             return res.render("dashboard", { activePage: 'dashboard' })
-//         }else{
-//             return res.redirect("/admin/login")
-//         }
-//     } catch (error) {
-//         console.error("dashBoard render error",error.message)
-//     }
-// }
 
 async function getTotalSales() {
     try {

@@ -5,6 +5,7 @@ const Address = require("../../models/addressSchema");
 const Coupon = require("../../models/couponSchema");
 const { loadShopping } = require("./userController");
 const Wallet = require("../../models/walletSchema");
+const Return = require("../../models/returnSchema");
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
@@ -81,7 +82,7 @@ const createOrder = async (req, res) => {
         const newOrder = new Order({
             userId: user._id,
             orderedItems,
-            totalPrice,
+            totalPrice:(Number(totalPrice)+40),
             discount,
             finalAmount,
             address,
@@ -123,7 +124,7 @@ const getOrderDetails = async (req, res) => {
         const orderDetails = await Order.findOne({ orderId: orderId })
             .populate('orderedItems.product')
             .lean();
-
+        
         if (!orderDetails) {
             return res.status(404).render("pageNotFound");
         }
@@ -229,173 +230,237 @@ const orderSuccess =async (req, res) => {
 
 const getInvoice = async (req, res) => {
     const orderId = req.query.id;
+    const formatCurrency = (amount) => {
+        return `Rs:${amount.toFixed(2)}`;
+    };
 
     try {
-        // Fetch order details with user and product information
         const order = await Order.findById(orderId)
-            .populate('userId', 'name email') // Populates user's name and email
-            .populate('orderedItems.product', 'productName salePrice'); // Populates product details
+            .populate('userId', 'name email')
+            .populate('orderedItems.product', 'productName salePrice');
 
         if (!order) {
             return res.status(404).send("Order not found.");
         }
 
-        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        const doc = new PDFDocument({
+            margin: 50,
+            size: 'A4',
+            font: 'Helvetica'
+        });
 
-        // Set headers for PDF download
         const fileName = `invoice-${orderId}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-
-        // Pipe the PDF document to the response
         doc.pipe(res);
-
-        // Sophisticated Color Palette
         const colors = {
-            primary: '#1A2238',     // Deep Navy Blue
-            secondary: '#16213E',   // Darker Navy
-            accent: '#0F3460',      // Rich Blue
-            highlight: '#E94560',   // Vibrant Coral Red
-            text: '#0F1123',        // Almost Black
-            background: '#F5F5F5',  // Light Gray Background
-            border: '#414757'       // Slate Gray
+            primary: '#2C3639',
+            secondary: '#3F4E4F',
+            accent: '#A27B5C',
+            highlight: '#DCD7C9',
+            text: '#2C3639',
+            background: 'white',
+            border: '#A27B5C'
         };
 
-        // Background Watermark Effect
+        doc.rect(0, 0, doc.page.width, doc.page.height)
+            .fill(colors.background);
+        for (let i = 0; i < doc.page.width; i += 40) {
+            for (let j = 0; j < doc.page.height; j += 40) {
+                doc.save()
+                    .translate(i, j)
+                    .path('M 0,0 L 10,10 M 10,0 L 0,10')
+                    .strokeColor(colors.highlight)
+                    .opacity(0.1)
+                    .stroke()
+                    .restore();
+            }
+        }
+
+        doc.save();
+        try {
+            const path = require('path');
+            const logoPath = path.join(__dirname, '..','..','public', 'uploads', 'banner', 'logoSVG.png');
+
+            ;
+            doc.image(logoPath, 70, 70, { width: 60 }) 
+                .circle(100, 100, 35)
+                .strokeColor(colors.border)
+                .lineWidth(0.5)
+                .stroke();
+        } catch (err) {
+            console.error('Error loading logo image:', err);
+            doc.circle(100, 100, 30)
+                .fill(colors.accent);
+            doc.font('Helvetica-Bold')
+                .fontSize(40)
+                .fillColor('white')
+                .text('A', 88, 80);
+            doc.circle(100, 100, 35)
+                .strokeColor(colors.border)
+                .lineWidth(0.5)
+                .stroke();
+        }
+        doc.restore();
+        doc.font('Helvetica-Bold')
+            .fontSize(24)
+            .fillColor(colors.primary)
+            .text('ARTISTAA', 150, 85)
+            .fontSize(12)
+            .font('Helvetica')
+            .fillColor(colors.secondary)
+            .text('Curating Creativity | Delivering Excellence', 150, 110);
+        doc.fontSize(10)
+            .text('Artistaa Pvt Ltd', 150, 130)
+            .text('123 Art Street, Creative Valley', 150, 145)
+            .text('Kochi, Kerala - 400001', 150, 160)
+            .text('GSTIN: 27AABCU9603R1ZX', 150, 175);
+
+        doc.moveTo(50, 200)
+            .lineTo(550, 200)
+            .strokeColor(colors.accent)
+            .strokeOpacity(0.4)
+            .stroke();
+
+        doc.font('Helvetica-Bold')
+            .fontSize(20)
+            .fillColor(colors.primary)
+            .text('TAX INVOICE', 0, 220, { align: 'center' });
         doc.save()
-            .fillColor(colors.background)
-            .rect(50, 50, 500, 700)
+            .rect(350, 250, 200, 100)
+            .fillColor(colors.highlight)
+            .fillOpacity(0.3)
+            .fill()
+            .restore();
+        doc.font('Helvetica')
+            .fontSize(10)
+            .fillColor(colors.text)
+            .text(`Invoice No: ART-${orderId.slice(-8)}`, 360, 260)
+            .text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`, 360, 275)
+            .text(`Order ID: ${orderId}`, 360, 290)
+            .text(`Payment Status: Paid`, 360, 305);
+
+        doc.font('Helvetica-Bold')
+            .fontSize(12)
+            .text('BILLED TO:', 50, 250)
+            .font('Helvetica')
+            .fontSize(10)
+            .text(order.userId.name, 50, 270)
+            .text(order.userId.email, 50, 285);
+        const tableTop = 350;
+        doc.save()
+            .rect(50, tableTop, 500, 30)
+            .fillColor(colors.primary)
             .fill()
             .restore();
 
-        // Decorative Header
-        doc.lineWidth(0.5)
-            .fillColor(colors.primary)
-            .rect(50, 50, 500, 80)
-            .fill();
-
-        // Company Details with Elegant Typography
         doc.fillColor('white')
             .font('Helvetica-Bold')
-            .fontSize(16)
-            .text('ARTISTAA', 70, 75)
-            .font('Helvetica')
-            .fontSize(10)
-            .text('Pvt Ltd | Innovative Designs', 70, 95)
-            .text('GST: 07AATCA2480C1Z0', 70, 110, { color: colors.highlight });
-
-        // Invoice Header with Subtle Design
-        doc.fillColor(colors.text)
-            .font('Helvetica-Bold')
-            .fontSize(24)
-            .text('TAX INVOICE', 0, 180, { align: 'center' });
-
-        // Elegant Invoice Details Box
-        doc.strokeColor(colors.border)
-            .lineWidth(1)
-            .rect(350, 230, 210, 120)
-            .stroke();
-
-        doc.fillColor(colors.text)
-            .font('Helvetica')
-            .fontSize(10)
-            .text(`Invoice Number: INV-${orderId.slice(-8)}`, 360, 240)
-            .text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`, 360, 255)
-            .text(`Order ID: ${orderId}`, 360, 270)
-            .text(`Payment Status: Paid`, 360, 285);
-
-        // Billing Details with Elegant Formatting
-        doc.font('Helvetica-Bold')
-            .fontSize(12)
-            .fillColor(colors.primary)
-            .text(`Bill To:`, 50, 280)
-            .font('Helvetica')
-            .fontSize(10)
-            .fillColor(colors.text)
-            .text(`${order.userId.name || 'Customer'}`, 50, 300)
-            .text(`Email: ${order.userId.email}`, 50, 315);
-
-        // Table with Sophisticated Design
-        const tableTop = 380;
-        doc.font('Helvetica-Bold')
-            .fontSize(10)
-            .fillColor('white')
-            .fillColor(colors.accent)
-            .rect(50, tableTop - 20, 500, 25)
-            .fill();
-
-        doc.fillColor('white')
-            .text('Description', 50, tableTop - 15)
-            .text('Quantity', 300, tableTop - 15)
-            .text('Unit Price (₹)', 400, tableTop - 15)
-            .text('Total (₹)', 500, tableTop - 15);
-
-        // Table Rows
-        doc.font('Helvetica')
-            .fontSize(10)
-            .fillColor(colors.text);
-
-        let yPosition = tableTop + 20;
+            .text('DESCRIPTION', 60, tableTop + 10)
+            .text('QTY', 310, tableTop + 10)
+            .text('PRICE', 400, tableTop + 10)
+            .text('AMOUNT', 490, tableTop + 10);
+        let yPosition = tableTop + 40;
         let subtotal = 0;
+        order.orderedItems.forEach((item, index) => {
+            if (index % 2 === 0) {
+                doc.save()
+                    .rect(50, yPosition - 5, 500, 25)
+                    .fillColor(colors.highlight)
+                    .opacity(0.2)
+                    .fill()
+                    .restore();
+            }
 
-        order.orderedItems.forEach(item => {
             const itemTotal = item.product.salePrice * item.quantity;
             subtotal += itemTotal;
 
-            doc.text(item.product.productName, 50, yPosition)
-                .text(item.quantity.toString(), 300, yPosition)
-                .text(`₹${item.product.salePrice.toFixed(2)}`, 400, yPosition)
-                .text(`₹${itemTotal.toFixed(2)}`, 500, yPosition);
+            doc.font('Helvetica')
+                .fontSize(10)
+                .fillColor(colors.text)
+                .text(item.product.productName, 60, yPosition)
+                .text(item.quantity.toString(), 310, yPosition)
+                .text(formatCurrency(item.product.salePrice), 400, yPosition)
+                .text(formatCurrency(itemTotal), 490, yPosition);
 
-            yPosition += 20;
+            yPosition += 25;
         });
 
-        // Total Calculation with Highlight
-        doc.lineWidth(1)
-            .strokeColor(colors.border)
-            .moveTo(50, yPosition + 10)
-            .lineTo(550, yPosition + 10)
-            .stroke();
+        const delivery = 40;
+        const total = subtotal + delivery;
 
-        doc.font('Helvetica-Bold')
+        doc.save()
+            .rect(350, yPosition + 10, 200, 100)
             .fillColor(colors.highlight)
-            .fontSize(12)
-            .text('Subtotal', 400, yPosition + 20)
-            .text(`₹${subtotal.toFixed(2)}`, 500, yPosition + 20);
+            .opacity(0.2)
+            .fill()
+            .restore();
 
-        // GST Calculation
-        const tax = subtotal * 0.18;
-        doc.fillColor(colors.text)
-            .text('GST (18%)', 400, yPosition + 40)
-            .text(`₹${tax.toFixed(2)}`, 500, yPosition + 40);
-
-        // Total with Prominent Styling
-        doc.font('Helvetica-Bold')
-            .fontSize(14)
-            .fillColor(colors.highlight)
-            .text('TOTAL', 400, yPosition + 60)
-            .text(`₹${(subtotal + tax).toFixed(2)}`, 500, yPosition + 60);
-
-        // Creative Footer
         doc.font('Helvetica')
-            .fontSize(8)
-            .fillColor(colors.secondary)
-            .text('Thank you for choosing Artistaa - Where Creativity Meets Quality', 50, 750, { align: 'center' })
-            .text('This is a computer-generated invoice', 50, 760, { align: 'center' });
+            .fontSize(10)
+            .text('Subtotal', 360, yPosition + 20)
+            .text(formatCurrency(subtotal), 490, yPosition + 20, { align: 'right' })
+            .text('Delivery Charge', 360, yPosition + 35)
+            .text(formatCurrency(delivery), 490, yPosition + 35, { align: 'right' });
 
-        // Decorative border
-        doc.lineWidth(0.5)
+        doc.font('Helvetica-Bold')
+            .fontSize(11)
+            .fillColor(colors.primary)
+            .text('TOTAL', 360, yPosition + 75)
+            .text(formatCurrency(total), 490, yPosition + 75, { align: 'right' });
+        const footerY = 700;
+        doc.save()
+            .rect(50, footerY, 500, 60)
+            .fillColor(colors.primary)
+            .opacity(0.05)
+            .fill()
+            .restore();
+
+        doc.font('Helvetica')
+            .fontSize(9)
+            .fillColor(colors.secondary)
+            .text('Thank you for supporting independent artists and creators', 0, footerY + 15, { align: 'center' })
+            .text('Each purchase contributes to the growth of the artistic community', 0, footerY + 30, { align: 'center' })
+            .font('Helvetica-Bold')
+            .text('www.artistaa.com', 0, footerY + 45, { align: 'center' });
+
+        doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40)
             .strokeColor(colors.border)
-            .rect(40, 40, 520, 770)
+            .opacity(0.3)
             .stroke();
 
-        // Finalize the PDF
         doc.end();
+
     } catch (error) {
         console.error("Error generating invoice:", error);
         res.status(500).send("Error generating invoice.");
     }
 };
+
+
+const returnSubmit = async (req,res) => {
+    try {
+    const userId = req.session.user;
+    const {orderId, reason}=req.body;
+    const returnData =new Return({
+        userId:userId,
+        orderId:orderId,
+        reason:reason,
+        status:"Pending"
+    })
+    const data = await returnData.save();
+    const orderUpdate = await Order.findByIdAndUpdate({_id:orderId},{$set:{status:"Return Request"}})
+    
+    if(data && orderUpdate){
+        return res.status(200).json({success:true});
+    }
+    return res.status(400).json({success:false})
+        
+    } catch (error) {
+        console.log("error in return submit",error);
+        res.status(500).send("Error in returing");
+    }
+}
 
 module.exports = {
     createOrder,
@@ -403,6 +468,7 @@ module.exports = {
     cancelOrder,
     applyCoupon,
     orderSuccess,
-    getInvoice
+    getInvoice,
+    returnSubmit
     
 }

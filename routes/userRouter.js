@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Cart = require("../models/cartSchema");
 const User = require("../models/userSchema");
+const Wishlist = require("../models/wishlistSchema")
 const userController = require("../controllers/user/userController");
 const profileController = require("../controllers/user/profileControllers");
 const cartController = require("../controllers/user/cartControllers");
@@ -17,32 +18,32 @@ const mongoose = require("mongoose");
 
 router.use(async (req, res, next) => {
   try {
+    res.locals.user = null;
+    res.locals.cartCount = 0;
+    res.locals.wishlistCount = 0;
+
     if (req.session.user && mongoose.Types.ObjectId.isValid(req.session.user)) {
       const user = await User.findById(req.session.user) || null;
       res.locals.user = user;
-    } else {
-      res.locals.user = null;
-    }
-    next();
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-});
-
-
-router.use(async (req, res, next) => {
-  res.locals.cartCount = 0;
-  try {
-    if (req.session.user && mongoose.Types.ObjectId.isValid(req.session.user)){
-      const cart = await Cart.findOne({ userId: req.session.user });
+      const cart = await Cart.findOne({ userId: req.session.user }).populate('items.productId');
       if (cart) {
-        res.locals.cartCount = cart.items.length || null;
+        const activeCartItems = cart.items.filter(
+          item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity
+        );
+        res.locals.cartCount = activeCartItems.length;
+      }
+      const wishlist = await Wishlist.findOne({ userId: req.session.user }).populate('products.productId');
+      if (wishlist) {
+        const activeWishlistItems = wishlist.products.filter(
+          item => item.productId && !item.productId.isBlocked && item.productId.quantity >= 1
+        );
+        res.locals.wishlistCount = activeWishlistItems.length;
       }
     }
+
     next();
   } catch (error) {
-    console.error("Error fetching cart:", error);
+    console.error("Error in middleware:", error);
     next(error);
   }
 });
@@ -50,8 +51,9 @@ router.use(async (req, res, next) => {
 
 router.get("/pageNotFound", userController.pageNotFound)
 router.get("/",userController.loadHomepage);
-router.get("/shop",userController.loadShopPage)
-router.get("/getProducts", userController.getProducts)
+router.get("/shop",userController.loadShopPage);
+router.get("/getProducts", userController.getProducts);
+router.get("/search",userController.searchResult)
 router.get("/signup", userController.loadSignup);
 router.post("/signup", userController.signup);
 router.post("/verify-otp", userController.verifyOtp);
@@ -100,6 +102,7 @@ router.get('/download-invoice',auth.userAuth,orderController.getInvoice);
 
 router.get("/order-details", auth.userAuth, orderController.getOrderDetails);
 router.get("/order-cancel", auth.userAuth, orderController.cancelOrder);
+router.post("/submit-return",auth.userAuth,orderController.returnSubmit)
 
 router.post("/apply-coupon",auth.userAuth,orderController.applyCoupon);
 router.post("/createPayment",auth.userAuth,paymentController.createPayment);

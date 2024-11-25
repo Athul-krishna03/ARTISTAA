@@ -110,10 +110,22 @@ async function addOffer(productId) {
         title: "Offer in percentage",
         input: "number",
         inputLabel: "percentage",
-        inputPlaceholder: "%"
+        inputPlaceholder: "%",
+        inputAttributes: {
+            min: 1,
+            max: 100
+        },
+        inputValidator: (value) => {
+            if (!value) {
+                return "You need to enter a percentage!";
+            }
+            if (isNaN(value) || value < 1 || value > 100) {
+                return "Please enter a percentage between 1 and 100!";
+            }
+        }
     });
 
-    if (amount) { 
+    if (amount) {
         $.ajax({
             url: "/admin/addProductOffer",
             method: "POST",
@@ -138,6 +150,7 @@ async function addOffer(productId) {
         Swal.fire("Cancelled", "No percentage entered", "info");
     }
 }
+
 
 function removeOffer(productId) {
     Swal.fire({

@@ -1,116 +1,136 @@
 <%- include("../partials/admin/header") %>
 
-    
-    <section class="content-main">
-        <div class="content-header">
-            <div>
-                <h2 class="content-title card-title">Order List </h2>
-                <p>Lorem ipsum dolor sit amet.</p>
-            </div>
-            <div>
-                <input type="text" placeholder="Search order ID" class="form-control bg-white">
-            </div>
+<section class="content-main">
+  <div class="content-header d-flex justify-content-between align-items-center">
+    <div>
+      <h2 class="content-title">Order List</h2>
+      <p>Manage and track all customer orders efficiently.</p>
+    </div>
+    <div>
+      <form class="d-flex" action="/admin/orders" method="get">
+        <input
+          type="text"
+          name="name"
+          placeholder="Search by name or order ID"
+          class="form-control bg-white me-2"
+        />
+        <button type="submit" class="btn btn-primary">
+          <i class="material-icons md-search"></i> Search
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <header class="card-header d-flex justify-content-between align-items-center">
+      <h5>Filter Orders</h5>
+      <form class="d-flex" action="/admin/orders" method="get">
+        <div class="me-2">
+          <select name="status" class="form-select">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Return Request">Return Request</option>
+            <option value="Returned">Returned</option>
+          </select>
         </div>
-        <div class="card mb-4">
-            <header class="card-header">
-                <div class="row gx-3">
-                    <div class="col-lg-4 col-md-6 me-auto">
-                        <input type="text" placeholder="Search..." class="form-control">
-                    </div>
-                    <div class="col-lg-2 col-6 col-md-3">
-                        <select class="form-select">
-                            <option>Status</option>
-                            <option>Active</option>
-                            <option>Disabled</option>
-                            <option>Show all</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-2 col-6 col-md-3">
-                        <select class="form-select">
-                            <option>Show 20</option>
-                            <option>Show 30</option>
-                            <option>Show 40</option>
-                        </select>
-                    </div>
-                </div>
-            </header> <!-- card-header end// -->
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#ID</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Total</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Date</th>
-                                <th scope="col">view Order</th>
-                                
-                                <th scope="col" class="text-end"> Action </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% if(orders) { %>
-                                <% orders.forEach(order => { %>
-                                    <tr>
-                                        <td>#<%= order._id %></td>
-                                        <td><b><%= order.userId.username %></b></td>
-                                        <td><%= order.userId.email %></td>
-                                        <td>₹<%= order.totalPrice %></td>
-                                        <td>
-                                            <span class="badge rounded-pill 
-                                                <% if (order.status === 'Pending') { %> alert-warning 
-                                                <% } else if (order.status === 'Processing') { %> alert-info 
-                                                <% } else if (order.status === 'Shipped') { %> alert-primary 
-                                                <% } else if (order.status === 'Delivered') { %> alert-success 
-                                                <% } else if (order.status === 'Cancelled') { %> alert-danger 
-                                                <% } else if (order.status === 'Return Request') { %> alert-secondary 
-                                                <% } else if (order.status === 'Returned') { %> alert-dark 
-                                                <% } %>">
-                                                <%= order.status %>
-                                            </span>
-                                        </td>
-                                        <td><%= order.createdOn.toLocaleDateString() %></td>
-                                        <td><a href="/admin/order-details?id=<%= order.orderId %>"
-                                            class="btn-small d-block">View</a></td>
-                                        <td class="text-end">
-                                            <div class="dropdown">
-                                                <a href="#" 
-                                                   data-bs-toggle="dropdown" 
-                                                   class="btn btn-light rounded btn-sm font-sm 
-                                                   <% if (order.status === 'Cancelled') { %> disabled <% } %>">
-                                                    <i class="material-icons md-more_horiz"></i>
-                                                </a>
-                                                
-                                                <% if (order.status !== "Cancelled") { %>
-                                                    <div class="dropdown-menu">
-                                                        <% if (order.status === "Delivered") { %>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Cancelled">Cancelled</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Return%20Request">Return Request</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Returned">Returned</a>
-                                                        <% } else { %>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Pending">Pending</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Processing">Processing</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Shipped">Shipped</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Delivered">Delivered</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Cancelled">Cancelled</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Return%20Request">Return Request</a>
-                                                            <a class="dropdown-item" href="/admin/statusUpdate?id=<%= order._id %>&status=Returned">Returned</a>
-                                                        <% } %>
-                                                    </div>
-                                                <% } %>
-                                            </div>
-                                            
-                                        </td>
-                                    </tr>
-                                <% }) %>
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </form>
+    </header>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>#ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (orders && orders.length > 0) { %>
+              <% orders.forEach(order => { %>
+                <tr>
+                  <td>#<%= order._id %></td>
+                  <td><%= order.userId?.username || "N/A" %></td>
+                  <td><%= order.userId?.email || "N/A" %></td>
+                  <td>₹<%= order.totalPrice.toFixed(2) %></td>
+                  <td>
+                    <span class="badge rounded-pill 
+                      <% if (order.status === 'Pending') { %> alert-warning 
+                      <% } else if (order.status === 'Processing') { %> alert-info 
+                      <% } else if (order.status === 'Shipped') { %> alert-primary 
+                      <% } else if (order.status === 'Delivered') { %> alert-success 
+                      <% } else if (order.status === 'Cancelled') { %> alert-danger 
+                      <% } else if (order.status === 'Return Request') { %> alert-secondary 
+                      <% } else if (order.status === 'Returned') { %> alert-dark 
+                      <% } %>">
+                      <%= order.status %>
+                    </span>
+                  </td>
+                  <td><%= order.createdOn?.toLocaleDateString() || "N/A" %></td>
+                  <td>
+                    <div class="btn-group">
+                      <a
+                        href="/admin/order-details?id=<%= order._id %>"
+                        class="btn btn-sm btn-outline-primary"
+                        >View</a
+                      >
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        <% if (order.status === "Cancelled") { %> disabled <% } %>
+                      >
+                        Manage
+                      </button>
+                      <ul class="dropdown-menu">
+                        <% if (order.status !== "Cancelled") { %>
+                          <% const statuses = [
+                            "Pending",
+                            "Processing",
+                            "Shipped",
+                            "Delivered",
+                            "Cancelled",
+                            "Return Request",
+                            "Returned"
+                          ]; %>
+                          <% statuses.forEach(status => { %>
+                            <% if (order.status !== status) { %>
+                              <li>
+                                <a
+                                  class="dropdown-item"
+                                  href="/admin/statusUpdate?id=<%= order._id %>&status=<%= encodeURIComponent(status) %>"
+                                  ><%= status %></a
+                                >
+                              </li>
                             <% } %>
-                        </tbody>
-                        
-                    </table>
-                </div> 
-            </div> <!-- card-body end// -->
-        </div> 
-    </section> 
+                          <% }); %>
+                        <% } %>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center">No orders found.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
 <%- include("../partials/admin/footer") %>

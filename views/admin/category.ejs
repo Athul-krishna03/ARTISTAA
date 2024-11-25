@@ -275,6 +275,18 @@
         input:"number",
         inputLabel:"Percentage",
         inputPlaceholder:"%",
+        inputAttributes: {
+            min: 1,
+            max: 100
+        },
+        inputValidator: (value) => {
+            if (!value) {
+                return "You need to enter a percentage!";
+            }
+            if (isNaN(value) || value < 1 || value > 100) {
+                return "Please enter a percentage between 1 and 100!";
+            }
+        }
        });
        if(amount){
         try {

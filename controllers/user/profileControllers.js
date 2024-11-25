@@ -163,8 +163,10 @@ const getUserDashboard = async (req,res) => {
         const skip =(page-1)*limit;
 
         const order = await Order.find({userId:req.session.user}).sort({createdOn:-1}).skip(skip).limit(limit)|| [];
+        
         const totalOrders = await Order.countDocuments();
-        const totalPages = Math.ceil(totalOrders/limit);
+        console.log("to",totalOrders)
+        const totalPages = Math.floor(totalOrders/limit);
         const user = await User.findById({_id:req.session.user})
         const addresses = await Address.findOne({ userId: req.session.user }) || [];
         const wallet = await Wallet.findOne({ userId: req.session.user }).populate("transactions.orderId");

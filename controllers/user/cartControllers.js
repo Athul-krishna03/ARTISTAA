@@ -14,19 +14,17 @@ const showCart = async (req, res) => {
             return res.status(404).redirect("/login");
         }
         const cart = await Cart.findOne({ userId }).populate("items.productId") || [];
-        const activeItems = cart.items.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
-        cart.items=activeItems;
-        if (!cart) {
-            return res.status(404).render("cart", { user: user, cartTotal: 0 });
+        if (cart && cart.length>0) {
+            const activeItems = cart.items.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
+            cart.items=activeItems;
+            const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
+            return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
+        }else if(cart){
+            const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
+            return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
+
         }
-        
-        const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
-
-        res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
-            
-        
-
-        
+        return res.status(404).render("cart", { user: user, cartTotal: 0 });  
     } catch (error) {
         console.error("Error showing cart:", error);
         res.status(500).send("Error showing cart");
@@ -121,6 +119,7 @@ const getCheckOut = async (req, res) => {
         const addresses = (await Address.findOne({ userId })) || [];
 
         let totalPrice;
+        let deliveryCharge=40;
 
         if (productId) {
            

@@ -59,13 +59,6 @@ const customerBlocked=async (req,res) => {
     }
 }
 
-// const customerunBlocked = async(req,res)=>{
-//     try {
-//         let id = req.query.id;
-//     } catch (error) {
-//         console.log(error.message)
-//     }
-// }
 module.exports={
     customerInfo,
     customerBlocked

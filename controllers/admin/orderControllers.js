@@ -1,24 +1,41 @@
 const User = require("../../models/userSchema");
 const Order = require("../../models/orderSchema");
 const Address = require("../../models/addressSchema");
+const Return = require("../../models/returnSchema");
+const Wallet = require("../../models/walletSchema");
 
 
 const getOrderDetails = async (req, res) => {
     try {
-        const orders = await Order.find().sort({ createdOn: -1 },{new:true}).populate("userId");
-        console.log(orders)
-        if (orders) {
-            return res.render("orderManagement", { orders: orders ,activePage: 'orders'})
+        const { status, name } = req.query;
+        const filter = {};
+        if (status) {
+            filter.status = status;
         }
+
+        const orders = await Order.find(filter)
+            .sort({ createdOn: -1 })
+            .populate({
+                path: "userId",
+                match: name ? { username: { $regex: name, $options: "i" } } : {}, 
+            });
+
+        const filteredOrders = orders.filter((order) => order.userId !== null);
+        return res.render("orderManagement", {
+            orders: filteredOrders,
+            activePage: "orders",
+        });
     } catch (error) {
-        console.log(error, "error in getting order detials")
+        console.error("Error in getting order details:", error.message);
+        return res.status(500).send("Internal Server Error");
     }
-}
+};
+
 const getOrderDetailsView = async (req, res) => {
     try {
-
+        console.log(req.query)
         const orderId = req.query.id;
-        const orderDetails = await Order.findOne({ orderId: orderId })
+        const orderDetails = await Order.findById({ _id: orderId })
             .populate('orderedItems.product')
             .lean();
 
@@ -79,9 +96,54 @@ const getSalesReport = async (req,res) => {
     }
 }
 
+const getReturnRequest = async (req,res) => {
+    try {
+        const returnRequests= await Return.find().populate("userId")
+        if(returnRequests){
+        return res.render('returnRequestPage',{returnRequests:returnRequests,activePage:"return"})
+        }
+    } catch (error) {
+        console.log("return request page load error",error);
+        res.status(404).redirect("/pageNotFound");
+    }
+}
+const updateReturnRequest=async (req,res) => {
+    try {
+    const { requestId, status } = req.body;
+    const requestData = await Return.findByIdAndUpdate({_id:requestId},{$set:{status:status}});
+    if(requestData){
+        const walletData = await Wallet.findOne({"transactions.orderId":requestData.orderId});
+        if(!walletData){
+            const orderData = await Order.findById({_id:requestData.orderId});
+            const newWallet  = {
+                $inc:{balance:orderData.finalAmount},
+                $push:{
+                    transactions:{
+                        type:"Refund",
+                        amount:orderData.finalAmount,
+                        orderId:orderData._id
+                    }
+                }
+            }
+            const walletUpdate = await Wallet.findOneAndUpdate({userId:requestData.userId},newWallet,{upsert:true,new:true})
+            if(walletUpdate){
+                return res.status(200).json({success:true});
+            }
+            console.log("error in wallet update");
+            return res.status(400).json({success:false});
+        };
+    }
+    return res.status(400).json({success:false});
+    } catch (error) {
+        console.log("update request error",error);
+    }
+}
+
 module.exports = {
     getOrderDetails,
     updateStatus,
     getSalesReport,
-    getOrderDetailsView
+    getOrderDetailsView,
+    getReturnRequest,
+    updateReturnRequest
 }

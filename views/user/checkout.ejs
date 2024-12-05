@@ -210,13 +210,9 @@
                                                                 <td colspan="2" id="discountAmount">0</td>
                                                             </tr>
                                                             <tr>
-                                                                <th>Delivery</th>
-                                                                <td colspan="2" id="discountAmount">40</td>
-                                                            </tr>
-                                                            <tr>
                                                                 <th>Total</th>
                                                                 <td colspan="2" id="totalAmount">
-                                                                    <%= (totalPrice+40).toLocaleString() %>
+                                                                    <%= (totalPrice).toLocaleString() %>
                                                                 </td>
                                                             </tr>
                                 </tbody>
@@ -231,6 +227,7 @@
                                 <button type="button" id="removeCouponBtn" class="btn-fill-out" onclick="removeCoupon()"
                                     style="display: none;">Remove Coupon</button>
                             </div>
+                            <% if(totalPrice > 0){%>
 
                             <form id="orderForm" method="POST" action="/place-order"
                                 onsubmit="return validateAddress()">
@@ -239,7 +236,7 @@
                                     <div class="payment_option">
                                         <input type="hidden" name="discount" id="discount" value="0">
                                         <input type="hidden" name="finalAmount" id="finalAmount"
-                                            value="<%= totalPrice+40%>">
+                                            value="<%= totalPrice%>">
                                         <input type="hidden" name="couponCode" id="code" value="0">
                                         <div class="custome-radio" id="cod">
                                             <input class="form-check-input" required type="radio" name="payment_option"
@@ -282,6 +279,7 @@
 
 
                             </form>
+                            <% }%>
                         </div>
                     </div>
 
@@ -593,13 +591,13 @@
                 });
             }
 
-            // const finalAmount=document.getElementById('totalAmount').innerText.replace(/,/g, '').trim()
-            // console.log(typeof(finalAmount))
-            // if (Number(finalAmount) > 1000) {
-            //     document.getElementById('cod').style.display = 'none';
-            // } else {
-            //     document.getElementById('cod').style.display = 'block';
-            // }
+            const finalAmount=document.getElementById('totalAmount').innerText.replace(/,/g, '').trim()
+            console.log(typeof(finalAmount))
+            if (Number(finalAmount) > 1000) {
+                document.getElementById('cod').style.display = 'none';
+            } else {
+                document.getElementById('cod').style.display = 'block';
+            }
 
 
         </script>

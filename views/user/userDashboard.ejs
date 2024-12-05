@@ -107,11 +107,6 @@
                                                                         <td>₹<%= order.finalAmount %> for <%= order.orderedItems.length %> item(s)</td>
                                                                         <td>
                                                                             <a href="/order-details?id=<%= order.orderId %>" class="btn btn-sm btn-outline-primary">View</a>
-                                                                            <% if (order.status === "Delivered") { %>
-                                                                                <button class="btn btn-sm btn-outline-secondary" onclick="submitReturn('<%= order._id %>')">Return</button>
-                                                                            <% } else if (!["Cancelled", "Return Request", "Returned"].includes(order.status)) { %>
-                                                                                <a href="#" onclick="cancelOrder('<%= order._id %>')" class="btn btn-sm btn-outline-danger">Cancel Order</a>
-                                                                            <% } %>
                                                                             
                                                                         </td>
                                                                     </tr>
@@ -258,9 +253,8 @@
                                                         </div>
                                                         <div class="form-group col-md-12">
                                                             <label>Email <span class="required">*</span></label>
-                                                            <input required="" class="form-control square" name="email"
+                                                            <input  class="form-control square" name="email"
                                                                 value="<%=user.email%>" readonly>
-                                                            <div id="emailError" class="text-danger"></div>
                                                         </div>
                                                         <div class="form-group col-md-12">
                                                             <label>Phone no. <span class="required">*</span></label>
@@ -279,21 +273,28 @@
                                     </div>
                                     <div class="tab-pane fade" id="wallet" role="tabpanel" aria-labelledby="wallet-tab">
                                         <div class="card">
+
+
                                             <div class="card-header">
+                                                <h6>Referral Program:</h6>
+                                            </div>
+                                            <div class="card-body">
+
+                                                <div class="referral-details mb-4">
+                                                    <p>Your Referral Code: <strong><%= user.referalCode %></strong></p>
+                                                    <p>Total Referral Earnings: <%= totalReferalEarnings %></p>
+                                                    <p>Referrals Made: <%= totalReferalCount %> </p>
+                                                </div>
+                                            </div>
+                                        <div class="card-header">
                                                 <h5>Wallet</h5>
                                             </div>
                                             <div class="card-body">
     
                                                 <div class="wallet-balance mb-4">
                                                     <h6>Your Wallet Balance:</h6>
-                                                    <% if(wallet){%>
-                                                    <p class="balance-amount">₹<%=wallet.balance %></p>
-                                                    <% }else{%>
-                                                        <p class="balance-amount">₹<%=0%></p>
-                                                        <% } %>
+                                                    <p class="balance-amount">₹<%= wallet ? wallet.balance : 0 %></p>
                                                 </div>
-                                                
-                                               
                                                 <h6>Transaction History:</h6>
                                                 <div class="table-responsive">
                                                     <table class="table">
@@ -462,39 +463,31 @@
         }
 
         function validateForm(event) {
-            event.preventDefault();
+    event.preventDefault();
 
-            document.getElementById('nameError').innerText = '';
-            document.getElementById('emailError').innerText = '';
-            document.getElementById('phoneError').innerText = '';
+    document.getElementById('nameError').innerText = '';
+    document.getElementById('phoneError').innerText = '';
 
-            const name = document.querySelector('input[name="name"]').value;
-            const email = document.querySelector('input[name="email"]').value;
-            const phone = document.querySelector('input[name="phone"]').value;
+    const name = document.querySelector('input[name="name"]').value.trim();
+    const phone = document.querySelector('input[name="phone"]').value.trim();
 
-            let isValid = true;
+    let isValid = true;
+    const namePattern = /^[a-zA-Z\s]+$/;
+    if (!name || name.length < 5 || !namePattern.test(name)) {
+        document.getElementById('nameError').innerText = 'Name must be at least two characters long and contain only alphabetic characters and spaces.';
+        isValid = false;
+    }
+    const phonePattern = /^\+?[0-9\s]{7,15}$/;
+    if (!phone || !phonePattern.test(phone)) {
+        document.getElementById('phoneError').innerText = 'Please enter a valid phone number.';
+        isValid = false;
+    }
 
-            if (!name || name.length < 2) {
-                document.getElementById('nameError').innerText = 'Name must be at least two characters long';
-                isValid = false;
-            }
+    if (isValid) {
+        document.getElementById('userProfileForm').submit();
+    }
+}
 
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailPattern.test(email)) {
-                document.getElementById('emailError').innerText = 'Please enter a valid email address.';
-                isValid = false;
-            }
-
-            const phonePattern = /^\+?[0-9\s]{7,15}$/;
-            if (!phone || !phonePattern.test(phone)) {
-                document.getElementById('phoneError').innerText = 'Please enter a valid phone number.';
-                isValid = false;
-            }
-
-            if (isValid) {
-                document.getElementById('userProfileForm').submit();
-            }
-        }
     
     
         document.addEventListener("DOMContentLoaded", function () {

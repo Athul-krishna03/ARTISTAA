@@ -68,18 +68,25 @@ async function getTotalSales() {
                 }
             }
         ]);
+        const today = new Date();
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1)); 
+        startOfWeek.setHours(0, 0, 0, 0);
 
-        const weeklySales = await Order.aggregate([
+        const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 7));
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        const dailySales = await Order.aggregate([
             {
                 $match: {
                     createdOn: {
-                        $gte: new Date(new Date().getFullYear(), 0, 1) 
+                        $gte: startOfWeek,
+                        $lte: endOfWeek
                     }
                 }
             },
             {
                 $group: {
-                    _id: { $isoWeek: "$createdOn" },
+                    _id: { $dayOfWeek: "$createdOn" }, 
                     sales: { $sum: "$finalAmount" }
                 }
             },
@@ -87,13 +94,22 @@ async function getTotalSales() {
                 $sort: { "_id": 1 }
             }
         ]);
+        const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const weeklyData = {
+            labels: daysOfWeek,
+            data: Array(7).fill(0)
+        };
+        console.log(dailySales);
+        
+        dailySales.forEach(item => {
+            weeklyData.data[item._id - 1] = item.sales;
+        });
 
- 
         const monthlySales = await Order.aggregate([
             {
                 $match: {
                     createdOn: {
-                        $gte: new Date(new Date().getFullYear(), 0, 1) 
+                        $gte: new Date(new Date().getFullYear(), 0, 1)
                     }
                 }
             },
@@ -108,7 +124,6 @@ async function getTotalSales() {
             }
         ]);
 
-
         const yearlySales = await Order.aggregate([
             {
                 $group: {
@@ -120,31 +135,22 @@ async function getTotalSales() {
                 $sort: { "_id": 1 }
             },
             {
-                $limit: 5 
+                $limit: 5
             }
         ]);
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-  
-        const weeklyData = {
-            labels: weeklySales.map(item => `Week ${item._id}`),
-            data: weeklySales.map(item => item.sales)
-        };
-
 
         const monthlyData = {
             labels: [],
             data: []
         };
 
-
         for (let i = 1; i <= 12; i++) {
             const monthData = monthlySales.find(item => item._id === i);
-            monthlyData.labels.push(monthNames[i-1]);
+            monthlyData.labels.push(monthNames[i - 1]);
             monthlyData.data.push(monthData ? monthData.sales : 0);
         }
-
 
         const yearlyData = {
             labels: yearlySales.map(item => item._id.toString()),
@@ -167,6 +173,7 @@ async function getTotalSales() {
         };
     }
 }
+
 
 async function getMostSellingProducts() {
     try {

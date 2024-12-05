@@ -183,7 +183,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Failed to Add',
-                            text: result.message || 'Failed to add item to cart.',
+                            text:  'Product limit exceeded.',
                         });
                     }
                 } catch (error) {
@@ -192,7 +192,7 @@
                         position: 'center',
                         icon: 'error',
                         title: 'Error',
-                        text: 'An error occurred while adding the item to the cart.',
+                        text: error.message||'An error occurred while adding the item to the cart.',
                     });
                 }
             }

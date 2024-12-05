@@ -52,6 +52,30 @@
                 <label for="endDate" class="form-label me-2">End Date:</label>
                 <input type="date" id="endDate" name="endDate" class="form-control w-auto">
             </form>
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    const startDateInput = document.getElementById("startDate");
+                    const endDateInput = document.getElementById("endDate");
+            
+                    const today = new Date().toISOString().split("T")[0];
+                    startDateInput.max = today;
+                    endDateInput.max = today;
+        
+                    function validateDates() {
+                        const startDate = new Date(startDateInput.value);
+                        const endDate = new Date(endDateInput.value);
+        
+                        if (startDateInput.value && endDateInput.value && startDate > endDate) {
+                            alert("Start Date cannot be later than End Date!");
+                            startDateInput.value = "";
+                        }
+                    }
+            
+                    startDateInput.addEventListener("change", validateDates);
+                    endDateInput.addEventListener("change", validateDates);
+                });
+            </script>
+            
         </div>
 
         <div class="row mb-4">
@@ -102,7 +126,6 @@
                         <th>Quantity</th>
                         <th>Date</th>
                         <th>Total Price</th>
-                        <th>Coupon Code</th>
                         <th>Coupon Amount</th>
                         <th>Final Amount</th>
                         <th>Payment Method</th>
@@ -111,7 +134,7 @@
                 </thead>
                 <tbody>
                     <% let k=1; %>
-                        <% for (let i=orders.length - 1; i>= 0; i--) { %>
+                        <% for (let i=0; i<orders.length; i++) { %>
                             <tr>
                                 <td>
                                     <%= k++ %>
@@ -146,9 +169,7 @@
                                 </td>
                                 <td>₹<%= orders[i].totalPrice.toLocaleString() %>
                                 </td>
-                                <td>
-                                    <%= orders[i].couponCode %>
-                                </td>
+                             
                                 <td>₹<%= orders[i].discount.toLocaleString() %>
                                 </td>
                                 <td>₹<%= orders[i].finalAmount.toLocaleString() %>
@@ -346,6 +367,7 @@
             function filterTable() {
                 const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
                 const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+                console.log(startDate,endDate)
 
                 if (startDate) startDate.setHours(0, 0, 0, 0);
                 if (endDate) endDate.setHours(23, 59, 59, 999);
@@ -368,8 +390,8 @@
 
                     if (showRow) {
                         visibleRows++;
-                        const finalAmount = parseFloat(row.cells[9].textContent.replace(/[₹,]/g, '')) || 0;
-                        const discount = parseFloat(row.cells[8].textContent.replace(/[₹,]/g, '')) || 0;
+                        const finalAmount = parseFloat(row.cells[8].textContent.replace(/[₹,]/g, '')) || 0;
+                        const discount = parseFloat(row.cells[7].textContent.replace(/[₹,]/g, '')) || 0;
 
                         totalSales += finalAmount;
                         totalDiscount += discount;
@@ -408,6 +430,19 @@
                     }
                 });
             }
+            function updateSerialNumbers() {
+            const table = document.getElementById('salesTable');
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = tbody.getElementsByTagName('tr');
+            let serialNumber = 1;
+            for (const row of rows) {
+            if (row.style.display !== 'none') {
+            row.cells[0].textContent = serialNumber++;
+        } else {
+            row.cells[0].textContent = ''; 
+        }
+    }
+}
 
 
             function handleDateRangeSelection(e) {
@@ -444,13 +479,17 @@
                         break;
                 }
                 filterTable();
+                updateSerialNumbers();
             }
 
             dateRangeSelect.addEventListener('change', handleDateRangeSelection);
             startDateInput.addEventListener('change', filterTable);
             endDateInput.addEventListener('change', filterTable);
+            startDateInput.addEventListener('change', updateSerialNumbers);
+            endDateInput.addEventListener('change', updateSerialNumbers);
 
             filterTable();
+            updateSerialNumbers()
         }
 
         document.addEventListener('DOMContentLoaded', initializeDateFilter);

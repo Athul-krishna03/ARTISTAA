@@ -163,14 +163,27 @@ const getUserDashboard = async (req,res) => {
         const skip =(page-1)*limit;
 
         const order = await Order.find({userId:req.session.user}).sort({createdOn:-1}).skip(skip).limit(limit)|| [];
-        
-        const totalOrders = await Order.countDocuments();
-        console.log("to",totalOrders)
+        const totalOrders = await Order.find({userId:req.session.user}).countDocuments();
         const totalPages = Math.floor(totalOrders/limit);
         const user = await User.findById({_id:req.session.user})
         const addresses = await Address.findOne({ userId: req.session.user }) || [];
         const wallet = await Wallet.findOne({ userId: req.session.user }).populate("transactions.orderId");
-        res.render("userDashboard",{addresses:addresses.address,user:user,orders:order,wallet:wallet,totalPages,totalOrders,page,skip,limit})
+        let totalReferalEarnings=0;
+        let totalReferalCount=0
+        if(wallet && wallet.transactions){
+            wallet.transactions.sort((a,b)=>{
+                return b.date - a.date;
+            })
+
+            totalReferalEarnings = wallet.transactions
+            .filter(transaction => transaction.type === "Referal")
+            .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+            totalReferalCount=wallet.transactions.filter(transaction => transaction.type === 'Referal').length;
+
+        }
+       
+        res.render("userDashboard",{addresses:addresses.address,user:user,orders:order,wallet:wallet,totalPages,totalOrders,page,skip,limit,totalReferalEarnings,totalReferalCount})
     } catch (error) {
         console.log(error)
     }

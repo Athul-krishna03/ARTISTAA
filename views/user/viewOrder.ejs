@@ -1,137 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
 <%- include('../partials/user/header') %>
+<style>
+    :root {
+        --primary-color: #007bff;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --info-color: #17a2b8;
+    }
 
-    <main class="main">
-        <!-- Order Details Section -->
-        <section class="order-details-section position-relative pt-50">
-            <div class="container">
-                
-                <div class="return-link mb-4">
-                    <a href="/orders" class="text-muted"><i class="fi-rs-angle-left"></i> Return to Orders</a>
-                </div>
+    body {
+        background-color: #f4f7f6;
+        font-family: 'Inter', sans-serif;
+    }
 
-                <div class="store-order-summary d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h2 class="store-name">ARTISTAA</h2>
-                        <p>Order ID: <%= order._id %> <br>Order Status:
-                                <span class="badge 
-                            <% if (order.status === 'Pending') { %> bg-warning text-dark 
-                            <% } else if (order.status === 'Processing') { %> bg-info text-white 
-                            <% } else if (order.status === 'Shipped') { %> bg-primary text-white 
-                            <% } else if (order.status === 'Delivered') { %> bg-success text-white 
-                            <% } else if (order.status === 'Cancelled') { %> bg-danger text-white 
-                            <% } else if (order.status === 'Return Request') { %> bg-secondary text-white 
-                            <% } else if (order.status === 'Returned') { %> bg-dark text-white 
-                            <% } %>">
-                                    <%= order.status %>
-                                </span>
-                        </p>
-                        <p>Placed on: <%= order.createdOn ? order.createdOn.toLocaleString() : "Date unavailable" %>
-                        </p>
-                    </div>
-                    <div class="order-total">
-                        <h3>Total: <span class="text-primary">₹ <%= order.totalPrice ? order.totalPrice.toLocaleString()
-                                    : "0.00" %></span></h3>
-                    </div>
-                </div>
+    .order-details-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
 
-                <% if (order.payment_status==="Payment failed" ) { %>
-                    <div class="payment-retry card mb-4">
-                        <div class="card-body text-center">
-                            <h5 class="text-danger">Payment Failed</h5>
-                            <p>Your payment was not successful. Please try again to complete your order.</p>
-                            <button class="btn btn-primary"
-                                onclick="retryPayment('<%= order._id %>', '<%= order.finalAmount || 0 %>')">Retry
-                                Payment</button>
-                        </div>
-                    </div>
-                    <% } %>
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
 
-                        <div class="shipment-status card mb-4">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5>Shipment Status:
-                                        <span class="badge 
-                                <% if (order.status === 'Pending') { %> text-warning 
-                                <% } else if (order.status === 'Processing') { %> text-info 
-                                <% } else if (order.status === 'Shipped') { %> text-primary 
-                                <% } else if (order.status === 'Delivered') { %> text-success 
-                                <% } else if (order.status === 'Cancelled') { %> text-danger 
-                                <% } else if (order.status === 'Return Request') { %> text-secondary 
-                                <% } else if (order.status === 'Returned') { %> text-dark 
-                                <% } %>">
-                                            <%= order.status || "Pending" %>
-                                        </span>
-                                    </h5>
-                                </div>
-                                <a href="#" class="btn btn-outline-success btn-success">Track Order</a>
-                            </div>
-                        </div>
+    .status-badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
 
-                        <!-- Products in Order -->
-                        <div class="order-products card mb-4">
-                            <div class="card-body">
-                                <% order.orderedItems.forEach((item)=> { %>
-                                    <div class="product-item d-flex align-items-center mb-4">
-                                        <img src="uploads/re-image/<%= item.product.productImage[0] %>"
-                                            alt="<%= item.product.productName %>" class="product-image me-3" width="80">
-                                        <div class="product-details">
-                                            <h5>
-                                                <%= item.product.productName %>
-                                            </h5>
-                                            <p>Qty: <%= item.quantity %>
-                                            </p>
-                                        </div>
-                                        <div class="product-price ms-auto">
-                                            <h5>₹ <%= item.product.salePrice ? item.product.salePrice.toLocaleString()
-                                                    : "0.00" %>
-                                            </h5>
-                                        </div>
-                                    </div>
-                                    <% }) %>
-                            </div>
-                        </div>
+    .status-badge-order {
+        margin-left: 10px;
+    }
 
-                        <!-- Order Summary and Shipping Details -->
-                        <div class="order-summary card">
-                            <div class="card-body d-flex justify-content-between">
-                                <div class="shipping-details">
-                                    <h6>Shipping Details</h6>
-                                    <p>
-                                        <%= address ? address.name : "N/A" %>
-                                    </p>
-                                    <p>
-                                        <%= address ? `${address.addressType}, ${address.city}, ${address.state} -
-                                            ${address.pincode}` : "Address not available" %>
-                                    </p>
-                                    <p>Phone: <%= address ? address.phone : "N/A" %>
-                                    </p>
-                                </div>
+    .status-badge-payment {
+        margin-left: 10px;
+    }
 
-                                <div class="payment-method text-center">
-                                    <h6>Payment Method</h6><br>
-                                    <p><strong>
-                                            <%= order.paymentMethod || "Not specified" %>
-                                        </strong></p>
-                                </div>
+    .order-details-card {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
 
-                                <div class="order-summary-details">
-                                    <h6>Order Summary</h6>
-                                    <p>Subtotal: ₹<%= order.totalPrice ? order.totalPrice.toLocaleString() : "0.00" %>
-                                    </p>
-                                    <p>Discount: ₹<%= order.discount ? order.discount.toLocaleString() : "0.00" %>
-                                    </p>
-                                    <hr>
-                                    <h5>Total: ₹<%= order.finalAmount ? order.finalAmount.toLocaleString() : "0.00" %>
-                                    </h5>
-                                </div>
-                            </div>
-                        </div>
+    .product-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .product-item:last-child {
+        border-bottom: none;
+    }
+
+    .product-image {
+        border-radius: 8px;
+        margin-right: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .order-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .summary-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .btn-custom {
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-return {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .btn-return:hover {
+        background-color: #555;
+    }
+
+    .btn-invoice {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-invoice:hover {
+        background-color: #0056b3;
+    }
+
+    .payment-retry-card {
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+</style>
+
+<main class="order-details-container">
+    <div class="return-link mb-4">
+        <a href="/userProfile" class="text-muted"><i class="fi-rs-angle-left"></i> Return to Orders</a>
+    </div>
+
+    <div class="order-header">
+        <div>
+            <h2 class="store-name">ARTISTAA</h2>
+            <p>
+                Order ID: <%= order._id %> 
+                <span class="status-badge status-badge-order 
+                    <% if (order.status === 'Pending') { %> bg-warning text-dark 
+                    <% } else if (order.status === 'Processing') { %> bg-info text-white 
+                    <% } else if (order.status === 'Shipped') { %> bg-primary text-white 
+                    <% } else if (order.status === 'Delivered') { %> bg-success text-white 
+                    <% } else if (order.status === 'Cancelled') { %> bg-danger text-white 
+                    <% } else if (order.status === 'Return Request') { %> bg-secondary text-white 
+                    <% } else if (order.status === 'Returned') { %> bg-dark text-white 
+                    <% } %>">
+                    <%= order.status %>
+                </span>
+                <span class="status-badge status-badge-payment 
+                    <% if (order.payment_status === 'Payment failed') { %> bg-danger text-white 
+                    <% } else if (order.payment_status === 'Payment completed') { %> bg-success text-white 
+                    <% } else { %> bg-warning text-dark 
+                    <% } %>">
+                    <%= order.payment_status || 'Payment Pending' %>
+                </span>
+            </p>
+            <p>Placed on: <%= order.createdOn ? order.createdOn.toLocaleString() : "Date unavailable" %></p>
+        </div>
+        <div class="order-total">
+            <h3>Total: <span class="text-primary">₹ <%= order.totalPrice ? order.totalPrice.toLocaleString() : "0.00" %></span></h3>
+        </div>
+    </div>
+
+    <% if (order.status === "Delivered") { %>
+    <div class="mb-4">
+        <button class="btn btn-custom btn-return me-2" onclick="submitReturn('<%= order._id %>')">Return</button>
+        <button id="downloadInvoice" class="btn btn-custom btn-invoice">Download Invoice</button>
+    </div>
+    <% } else if (!["Cancelled", "Return Request", "Returned"].includes(order.status)) { %>
+    <div class="mb-4">
+        <a href="#" onclick="cancelOrder('<%= order._id %>')" class="btn btn-custom btn-danger">Cancel Order</a>
+    </div>
+    <% } %>
+
+    <% if (order.payment_status === "Payment failed") { %>
+    <div class="payment-retry-card mb-4">
+        <h5 class="text-white mb-3">Payment Failed</h5>
+        <p class="mb-3">Your payment was not successful. Please try again to complete your order.</p>
+        <button class="btn btn-light" onclick="retryPayment('<%= order._id %>', '<%= order.finalAmount || 0 %>')">
+            Retry Payment
+        </button>
+    </div>
+    <% } %>
+
+    <div class="order-details-card">
+        <h4 class="mb-4">Order Products</h4>
+        <% order.orderedItems.forEach((item) => { %>
+        <div class="product-item">
+            <img src="uploads/re-image/<%= item.product.productImage[0] %>" 
+                alt="<%= item.product.productName %>" 
+                class="product-image" 
+                width="100" 
+                height="100">
+            <div class="flex-grow-1 ms-3">
+                <h5><%= item.product.productName %></h5>
+                <p class="text-muted">Quantity: <%= item.quantity %></p>
             </div>
-        </section>
-    </main>
+            <div>
+                <h5>₹ <%= item.price ? item.price.toLocaleString() : "0.00" %></h5>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+
+    <div class="order-details-card order-summary-grid">
+        <div class="summary-section">
+            <h6>Shipping Details</h6>
+            <p><%= address ? address.name : "N/A" %></p>
+            <p><%= address ? `${address.addressType}, ${address.city}, ${address.state} - ${address.pincode}` : "Address not available" %></p>
+            <p>Phone: <%= address ? address.phone : "N/A" %></p>
+        </div>
+
+        <div class="summary-section">
+            <h6>Payment Method</h6>
+            <p><strong><%= order.paymentMethod || "Not specified" %></strong></p>
+        </div>
+
+        <div class="summary-section">
+            <h6>Order Summary</h6>
+            <p>Subtotal: ₹<%= order.totalPrice ? order.totalPrice.toLocaleString() : "0.00" %></p>
+            <p>Discount: ₹<%= order.discount ? order.discount.toLocaleString() : "0.00" %></p>
+            <hr>
+            <h5>Total: ₹<%= order.finalAmount ? order.finalAmount.toLocaleString() : "0.00" %></h5>
+        </div>
+    </div>
+</main>
+
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+
+document.getElementById("downloadInvoice").addEventListener("click", function () {
+    const orderId = "<%= order._id%>"; // Dynamically set order ID
+    if (orderId) {
+        window.open(`/download-invoice?id=${orderId}`, "_blank");
+    } else {
+        alert("Order ID is missing. Cannot download the invoice.");
+    }
+    });
+
+async function submitReturn(orderId) {
+    try {
+    const result = await Swal.fire({
+        title: "Return Reason",
+        input: "textarea",
+        inputPlaceholder: "Enter the reason for return...",
+        showCancelButton: true,
+        confirmButtonText: "Submit",
+        cancelButtonText: "Cancel",
+        inputValidator: (value) => {
+        if (!value.trim()) {
+            return "Please provide a reason for the return.";
+        }
+        },
+    });
+
+    if (result.isConfirmed) {
+        const response = await fetch("/submit-return", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId, reason: result.value }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          await Swal.fire(
+            "Success",
+            "Return request submitted successfully!",
+            "success"
+          );
+          location.reload();
+        } else {
+          await Swal.fire(
+            "Error",
+            "Failed to submit return request. Please try again.",
+            "error"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      await Swal.fire(
+        "Error",
+        "An unexpected error occurred. Please try again later.",
+        "error"
+      );
+    }
+  }
+
+  async function cancelOrder(orderId) {
+    const confirmation = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to cancel this order?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, cancel it!",
+      cancelButtonText: "No, keep it",
+    });
+
+    if (confirmation.isConfirmed) {
+      try {
+        const response = await fetch(`/order-cancel?id=${orderId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          await Swal.fire({
+            icon: "success",
+            title: "Order Cancelled",
+            text: `Order #${data.orderId} has been successfully cancelled.`,
+            timer: 3000,
+            showConfirmButton: false,
+          });
+          return location.reload();
+
+          document.getElementById(`order-${orderId}`).remove();
+        } else {
+          await Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: data.message,
+          });
+        }
+      } catch (error) {
+        console.error("Error cancelling order:", error);
+        await Swal.fire({
+          icon: "error",
+          title: "An error occurred",
+          text: "Please try again later.",
+        });
+      }
+    }
+  }
+
         async function retryPayment(orderId, amount) {
             try {
                 // Fetch the Razorpay order details

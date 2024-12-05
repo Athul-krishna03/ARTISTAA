@@ -61,7 +61,7 @@ const addProducts = async (req,res) => {
 
             await newproduct.save();
             console.log("product saved successfully");
-            return res.redirect("/admin/addProducts");
+            return res.redirect("/admin/products");
         }else{
             return res.status(400).json("Product already.Please try with another name");
 
@@ -83,10 +83,12 @@ const getAllProducts =async (req,res) => {
                 {brand:{$regex: new RegExp(".*"+search+".*","i")}},
             ],
         })
+        .sort({createdAt:-1})
         .limit(limit*1)
-        .skip((page-1)*limit)
-        .populate("category")
-        .exec();
+        .skip((page-1)*limit)  
+        .populate("category");
+
+        console.log(products)
 
         const count= await Product.find({
             $or:[
@@ -127,10 +129,10 @@ const addProductOffer = async(req,res)=>{
         const findProduct = await Product.findById({_id:productId});
         const findCategory= await Category.findOne({_id:findProduct.category});
         if(findCategory.categoryOffer > percentage){
-            return res.json({status:false,message:"This product category has already a offer"})
+            return res.json({status:false,message:"This product category has already a higher offer"})
         }
 
-        findProduct.salePrice = findProduct.salePrice - Math.floor(findProduct.regularPrice*(percentage/100));
+        findProduct.salePrice -= Math.ceil(findProduct.salePrice*(percentage/100));
         findProduct.productOffer = parseInt(percentage);
         await findProduct.save();
         findCategory.categoryOffer = 0;
@@ -148,7 +150,7 @@ const removeProductOffer = async (req,res) => {
         const {productId} = req.body;
         const findProduct = await Product.findById({_id:productId});
         const percentage = findProduct.productOffer;
-        findProduct.salePrice = findProduct.salePrice + Math.floor(findProduct.regularPrice*(percentage/100));
+        findProduct.salePrice = Math.ceil(findProduct.salePrice / (1 - (percentage / 100)));
         findProduct.productOffer = 0;
         await findProduct.save();
         res.json({status:true});        
@@ -182,7 +184,7 @@ const blockProduct =async(req,res)=>{
 const getEditProduct = async (req,res) => {
     try {
         const id = req.query.id;
-        const product = await Product.findById({_id:id});
+        const product = await Product.findById({_id:id}).populate('category');
         const category = await Category.find({});
         const brand = await Brand.find({});
         res.render("edit-product",{
@@ -200,6 +202,7 @@ const getEditProduct = async (req,res) => {
 
 const editProduct = async (req,res) => {
     try {
+        console.log("data ",req.body)
         const id = req.query.id;
         const product= await Product.findById({_id:id});
         const data=req.body;
@@ -218,7 +221,7 @@ const editProduct = async (req,res) => {
 
         const updateFields ={
             productName:data.productName,
-            description:data.description,
+            description:data.descriptionData,
             brand:data.brand,
             category:product.category,
             regularPrice:data.regularPrice,
@@ -231,11 +234,13 @@ const editProduct = async (req,res) => {
             updateFields.$push ={productImage:{$each:images}}
         }
 
-        await Product.findByIdAndUpdate(id,updateFields,{new:true});
+        const updating=await Product.findByIdAndUpdate(id,updateFields,{new:true});
+        console.log(updating)
+        if(updating){
+            return  res.redirect("/admin/products");
 
-        res.redirect("/admin/products");
-
-
+        }
+    
     } catch (error) {
         console.log("edit product error",error);
     }
@@ -243,7 +248,7 @@ const editProduct = async (req,res) => {
 
 const deleteSingleImage = async (req,res) => {
     try {
-
+        console.log(req.body)
         const {imageNameToServer,productIdToServer} = req.body;
         const product = await Product.findByIdAndUpdate(productIdToServer,{$pull:{productImage:imageNameToServer}});
         const imagePath  = path.join("public","uploads","re-image",imageNameToServer);

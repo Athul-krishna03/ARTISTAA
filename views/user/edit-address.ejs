@@ -140,7 +140,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.4.8/sweetalert2.all.min.js"></script>
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#addressForm').submit(function (event) {
             event.preventDefault();
 
@@ -186,45 +186,56 @@
 
         let isValid = true;
 
-        const requiredFields = {
-            'name': 'Name',
-            'city': 'City',
-            'state': 'State',
-            'landMark': 'Landmark'
+        const validators = {
+            name: {
+                validate: value => /^[a-zA-Z\s]{4,50}$/.test(value.trim()),
+                errorMessage: 'Name must be 4-50 characters and only contain letters.'
+            },
+            city: {
+                validate: value => /^[a-zA-Z\s]{4,50}$/.test(value.trim()),
+                errorMessage: 'City must be 4-50 characters and only contain letters.'
+            },
+            state: {
+                validate: value => /^[a-zA-Z\s]{4,50}$/.test(value.trim()),
+                errorMessage: 'State must be 4-50 characters and only contain letters.'
+            },
+            landMark: {
+                validate: value => /^[a-zA-Z0-9\s]{4,100}$/.test(value.trim()),
+                errorMessage: 'Landmark must be 4-100 characters.'
+            },
+            pincode: {
+                validate: value => /^[1-9][0-9]{5}$/.test(value.trim()),
+                errorMessage: 'Pincode must be exactly 6 digits and cannot start with 0.'
+            },
+            phone: {
+                validate: value => /^[6-9][0-9]{9}$/.test(value.trim()),
+                errorMessage: 'Phone number must be exactly 10 digits starting with 6-9.'
+            },
+            altPhone: {
+                validate: value => !value.trim() || /^[6-9][0-9]{9}$/.test(value.trim()),
+                errorMessage: 'Alternate phone must be 10 digits starting with 6-9 or empty.'
+            }
         };
 
-        for (const [field, label] of Object.entries(requiredFields)) {
+        for (const field in validators) {
             const value = document.getElementById(field).value;
-            if (value.trim() === '') {
-                document.getElementById(field + 'Err').innerText = `${label} is required.`;
+            const { validate, errorMessage } = validators[field];
+            if (!validate(value)) {
+                document.getElementById(field + 'Err').innerText = errorMessage;
                 isValid = false;
             }
         }
 
-
-        const pincode = document.getElementById('pincode').value;
-        if (pincode.trim() === '' || !/^\d{6}$/.test(pincode)) {
-            document.getElementById('pincodeErr').innerText = 'Pincode must be exactly 6 digits.';
-            isValid = false;
-        }
-
-
-        const phone = document.getElementById('phone').value;
-        if (phone.trim() === '' || !/^\d{10,}$/.test(phone)) {
-            document.getElementById('phoneErr').innerText = 'Phone number must be at least 10 digits.';
-            isValid = false;
-        }
-
-
-        const altPhone = document.getElementById('altPhone').value;
-        if (altPhone !== '' && !/^\d{10,}$/.test(altPhone)) {
-            document.getElementById('altPhoneErr').innerText = 'Alternate phone number must be at least 10 digits.';
+        const addressType = document.getElementById('addressType').value;
+        if (addressType === '') {
+            document.getElementById('addressTypeErr').innerText = 'Please select an address type.';
             isValid = false;
         }
 
         return isValid;
     }
 </script>
+
 
 </body>
 </html>

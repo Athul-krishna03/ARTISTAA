@@ -51,19 +51,38 @@ const addCoupon = async (req, res) => {
             minimumPrice: miniPrice,
             isList: true
         });
-
-        await newCoupon.save();
+        const couponSave =await newCoupon.save();
+       
+        if(couponSave){
+            return res.status(200).json({ success: true, message: "Coupon added successfully" });
+        }else{
+            res.status(500).json({ success: false, message: "Coupon is not added" });
+        }
         
-        res.status(200).json({ success: true, message: "Coupon added successfully" });
+        
     } catch (error) {
         console.error('Error adding coupon:', error);
         res.status(500).json({ success: false, message: "Error adding coupon" });
     }
 };
-
+const deleteCoupon = async (req,res)=>{
+    try {
+        console.log("vhgcjh",req.params);
+        const couponId= req.query.id;
+        const couponData = await Coupon.findByIdAndDelete({_id:couponId});
+        if(couponData){
+            return res.json({success:true})
+        }else{
+            return res.json({success:false})
+        }
+    } catch (error) {
+        
+    }
+}
 
 
 module.exports = {
     getCouponPage,
-    addCoupon
+    addCoupon,
+    deleteCoupon
 }

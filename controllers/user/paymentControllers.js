@@ -6,7 +6,6 @@ const crypto = require('crypto');
 
 const razorpay = new Razorpay({
 key_id:"rzp_test_fu3JZWbM4Hq2Jt",
-   
 key_secret:"Kw2OGnMFs469euAjIysokWgM"
 });
 
@@ -24,7 +23,7 @@ const createPayment = async (req, res) => {
     try {
         const order = await razorpay.orders.create(options);
         console.log("order",order)
-        res.json({ success: true, orderId: order.id });
+        return res.json({ success: true, orderId: order.id });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Failed to create order' });

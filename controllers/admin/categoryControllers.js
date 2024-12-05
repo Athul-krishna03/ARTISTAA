@@ -63,7 +63,7 @@ const addCategoryOffer = async (req, res) => {
         console.log(products)
         
        
-        const hasProductOffer = products.some(product => product.productOffer > percentage);
+        const hasProductOffer = products.every(product => product.productOffer > percentage);
         if (hasProductOffer) {
             return res.json({ status: false, message: "Product in this category already has a higher offer" });
         }
@@ -73,9 +73,12 @@ const addCategoryOffer = async (req, res) => {
         
         
         for (const product of products) {
-            product.productOffer = percentage;
-            product.salePrice = product.regularPrice * (1 - percentage / 100); 
+            if(product.productOffer<percentage){
+                product.salePrice = Math.ceil(product.salePrice / (1 - (product.productOffer/ 100)));
+                product.productOffer = percentage;
+                product.salePrice -= Math.ceil(product.salePrice * (percentage/100));
             await product.save();
+            }
         }
         
         res.json({ status: true });
@@ -103,9 +106,11 @@ const removeCategoryOffer = async (req,res) => {
 
         if(products.length > 0){
             for(const product of products){
-                product.salePrice += Math.floor(product.regularPrice * (percentage/100));
+                if(product.productOffer <=percentage && Math.ceil(product.salePrice/(1-(percentage/100))) == Math.ceil(product.salePrice/(1-(product.productOffer/100)))){
+                product.salePrice = Math.ceil(product.salePrice/(1-(percentage/100)));
                 product.productOffer = 0;
                 await product.save()
+                }
             }
         }
         category.categoryOffer = 0;
@@ -154,7 +159,7 @@ const EditCategory = async (req, res) => {
       const id = req.query.id;
       const { name, description } = req.body;
   
-      const existingCategory = await Category.findOne({name:name});
+      const existingCategory = await Category.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
       if (existingCategory) {
         return res.status(400).json({ status: false, message: "Category exists. Please choose another name" });
       }

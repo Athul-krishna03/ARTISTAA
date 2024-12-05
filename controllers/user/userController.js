@@ -4,10 +4,13 @@ const Category = require("../../models/categorySchema");
 const Product = require("../../models/productSchema");
 const nodemailer = require("nodemailer");
 const Cart = require("../../models/cartSchema");
+const Wallet = require("../../models/walletSchema")
 const Banner = require("../../models/Banner");
 const env = require("dotenv").config();
+const axios=require('axios')
 const bcrypt = require("bcrypt");
 const { session } = require("passport");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const getProducts = async (req, res) => {
   const { sort, category } = req.query;
@@ -60,10 +63,9 @@ const loadHomepage = async (req, res) => {
       isBlocked: false,
       category: { $in: categories.map((category) => category._id) },
       quantity: { $gt: 0 },
-    });
+    }).populate('category');
 
     productData.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-    // productData = productData.slice(0);
     if (userId) {
       const userData = await User.findById(userId);
       if (!userData.isAdmin) {
@@ -140,6 +142,15 @@ function generateOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function generateReferralCode() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let referralCode = '';
+    for (let i = 0; i < 6; i++) {
+        referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return referralCode;
+}
+
 async function sendVerificationEmail(email, otp) {
   try {
     const transporter = nodemailer.createTransport({
@@ -170,7 +181,7 @@ async function sendVerificationEmail(email, otp) {
 
 const signup = async (req, res) => {
   try {
-    const { username, email, phone, password, cpassword } = req.body;
+    const { username, email, phone, password, cpassword ,referalCode} = req.body;
     console.log(password, cpassword);
     if (password != cpassword) {
       return res.render("signup", { message: "pass not match" });
@@ -184,6 +195,7 @@ const signup = async (req, res) => {
       });
     }
     const otp = generateOtp();
+    const Code=generateReferralCode();
 
     const emailSent = await sendVerificationEmail(email, otp);
     if (!emailSent) {
@@ -191,7 +203,7 @@ const signup = async (req, res) => {
     }
 
     req.session.userOtp = otp;
-    req.session.user = { username, email, phone, password };
+    req.session.user = { username, email, phone, password,Code,referalCode};
     console.log(req.session.user);
 
     res.render("verify-otp");
@@ -238,20 +250,51 @@ const verifyOtp = async (req, res) => {
         email: user.email,
         phone: user.phone,
         password: passwordHash,
+        referalCode:user.Code
       });
-
       await saveUserData.save();
       req.session.user = saveUserData._id;
+      if(user.referalCode){
+        const referedUser=await User.findOne({referalCode:user.referalCode});
+        console.log("referedCode",referedUser);
+        const walletUpdate = await Wallet.findOneAndUpdate(
+          { userId: referedUser._id },
+          {
+            $inc: { balance:120},
+            $push: {
+              transactions: {
+                type: "Referal",
+                amount: 120,
+              },
+            },
+          },
+          { upsert: true, new: true }
+        );
+        const walletUpdateNewUser = await Wallet.findOneAndUpdate(
+          { userId: saveUserData._id },
+          {
+            $inc: { balance:100},
+            $push: {
+              transactions: {
+                type: "Referal",
+                amount: 100,
+              },
+            },
+          },
+          { upsert: true, new: true }
+        );
+        if(!walletUpdate && !walletUpdateNewUser){
+          return  res.json({success:false,message:"error in wallet Update"})
+        }
+      }
       console.log(saveUserData);
-      res.json({ success: true, redirectUrl: "/" });
+      return res.json({ success: true, redirectUrl: "/" });
     } else {
-      res
-        .status(400)
-        .json({ success: false, message: "Invalid OTP,Please try again" });
+     return  res.status(400).json({ success: false, message: "Invalid OTP,Please try again" });
     }
   } catch (error) {
     console.error("Error verifying OTP", error);
-    res.status(500).json({ success: false, message: "An error occured" });
+    return res.status(500).json({ success: false, message: "An error occured" });
   }
 };
 
@@ -358,8 +401,37 @@ const searchResult = async (req, res) => {
     console.log("error in searching", error);
   }
 };
+const API_KEY ="AIzaSyAmMONpQKoZvAcE111_eHFClW7w-7x1c2o";
+const chatBotEndPoint  =async (req,res) => {
+  const { message } = req.body;
+
+  const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const prompt = message;
+console.log(req.body)
+const result = await model.generateContent(prompt);
+return res.json(result.response.text());
+  
+//   try {
+//     const response = await axios.post('https://aistudio.googleapis.com/v1beta3/models/gemini-chat:predict', {
+//         prompt: userMessage,
+//     }, {
+//         headers: {
+//             'Authorization': `Bearer ${API_KEY}`,
+//             'Content-Type': 'application/json'
+//         }
+//     });
+    
+//     console.log(response.data); // Log response data to verify
+// } catch (error) {
+//     console.error('Error with API request:', error); // More specific error log
+// }
+
+}
 module.exports = {
   loadHomepage,
+  chatBotEndPoint,
   loadShopPage,
   loadSignup,
   loadShopping,

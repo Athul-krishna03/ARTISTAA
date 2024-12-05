@@ -69,12 +69,16 @@
                                                 <ins><span class="text-brand"><i
                                                             class="fas fa-rupee-sign rupee-icon"></i>:<%= data.salePrice
                                                             %></span></ins>
-                                                <ins><span class="old-price font-md ml-15"><i
+                                                <ins>
+                                                    <% if(data.productOffer > 0){%>
+                                                    <span class="old-price font-md ml-15"><i
                                                             class="fas fa-rupee-sign rupee-icon"></i>:<%=
-                                                            data.regularPrice %></span></ins>
+                                                            data.salePrice/(1-(data.productOffer/100)) %></span></ins>
+                                                   
                                                 <span class="save-price font-md color3 ml-15">
                                                     <%= data.productOffer %>%
                                                 </span>
+                                            <% } %>
                                             </div>
                                         </div>
                                         <div class="bt-1 border-color-1 mt-15 mb-15"></div>
@@ -161,10 +165,42 @@
             console.log("Updated Quantity:", currentQty);
         }
 
-        function addToCart(productId) {
-            console.log("entered");
-            return window.location.href = `/addCart?productId=${productId}&quantity=${quantity}`;
-        }
+        async function addToCart(itemId) {
+                console.log(itemId)
+                try {
+                    const response = await fetch(`/addCart?productId=${itemId}&quantity=1`, {
+                        method: 'get',
+                        headers: {
+                            "Accept": "application/json",
+                            'Content-Type': 'application/json'
+                        },
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Added to Cart!',
+                            text: 'Item added to cart successfully.',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to Add',
+                            text:  'Product limit exceeded.',
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error adding item to cart:", error);
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message||'An error occurred while adding the item to the cart.',
+                    });
+                }
+            }
 
         function redirectToCheckout(productId) {
             const qtyValue = document.getElementById('product-qty').value;

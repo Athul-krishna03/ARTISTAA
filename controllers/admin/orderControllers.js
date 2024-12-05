@@ -43,10 +43,8 @@ const getOrderDetailsView = async (req, res) => {
             return res.status(404).render("pageNotFound");
         }
 
-        const addresses = await Address.findOne({ userId: orderDetails.userId });
 
-        const address = addresses?.address.find(address => address._id.toString() === orderDetails.address.toString());
-
+        const address = orderDetails.shippingAddress;
         res.render("orderView", {
             order: orderDetails,
             address: address || {},
@@ -84,10 +82,9 @@ const getSalesReport = async (req,res) => {
         const limit = 10;
         const skip = (page-1)*limit;
         const orderData = await Order.find().populate("userId").populate("orderedItems.product").sort({createdOn:-1}).skip(skip).limit(limit);
+       console.log(orderData)
         const count = await Order.countDocuments();
         const totalPages =Math.ceil(count/limit);
-
-        console.log(orderData)
         if(orderData){
             res.render("salesreport",{orders:orderData,activePage:"sales-report",count:count,totalPages,page})
         }
@@ -113,7 +110,7 @@ const updateReturnRequest=async (req,res) => {
     const requestData = await Return.findByIdAndUpdate({_id:requestId},{$set:{status:status}});
     if(requestData){
         const walletData = await Wallet.findOne({"transactions.orderId":requestData.orderId});
-        if(!walletData){
+        if(!walletData && status=="Approved"){
             const orderData = await Order.findById({_id:requestData.orderId});
             const newWallet  = {
                 $inc:{balance:orderData.finalAmount},
@@ -133,7 +130,7 @@ const updateReturnRequest=async (req,res) => {
             return res.status(400).json({success:false});
         };
     }
-    return res.status(400).json({success:false});
+    return res.status(200).json({success:true});
     } catch (error) {
         console.log("update request error",error);
     }

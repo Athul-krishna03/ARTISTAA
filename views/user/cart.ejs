@@ -155,7 +155,7 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <% if (cart.items && cart.items.length && cartTotal !=0 ) { %>
+                            <% if (cart.items && cart.items.length && activeTotal !=0 ) { %>
                                 <a href="/checkout" class="btn"><i class="fi-rs-box-alt mr-10"></i> Proceed To
                                     Checkout</a>
                                 <% } %>
@@ -242,63 +242,4 @@
                         console.error("Error updating quantity:", error);
                     });
             }
-            // document.addEventListener("DOMContentLoaded", () => {
-            //     const updateCartTotal = () => {
-            //         const subtotals = document.querySelectorAll(".subtotal span");
-            //         let cartTotal = 0;
-
-            //         subtotals.forEach(subtotal => {
-            //             cartTotal += parseFloat(subtotal.textContent.replace("₹", ""));
-            //         });
-
-            //         document.getElementById("cartTotal").textContent = `₹${cartTotal.toFixed(2)}`;
-            //         document.getElementById("grandTotal").textContent = `₹${cartTotal.toFixed(2)}`;
-            //     };
-
-            //     document.querySelectorAll(".qty-up, .qty-down").forEach(button => {
-            //         button.addEventListener("click", async event => {
-            //             event.preventDefault();
-
-            //             const isIncrease = event.target.closest(".qty-up");
-            //             const qtyContainer = button.closest(".detail-qty");
-            //             const qtyValElement = qtyContainer.querySelector(".qty-val");
-            //             const row = button.closest("tr");
-            //             let quantity = parseInt(qtyValElement.innerHTML);
-            //             const price = parseFloat(row.querySelector(".price span").textContent.replace("₹", ""));
-            //             const maxStock = parseInt(row.getAttribute("data-stock"));
-            //             const maxLimit = Math.min(5, maxStock);
-            //             const productId = row.getAttribute("data-product-id");
-
-            //             if (isIncrease && quantity < maxLimit) {
-            //                 quantity++;
-            //             } else if (!isIncrease && quantity > 1) {
-            //                 quantity--;
-            //             }
-
-            //             qtyValElement.textContent = quantity;
-            //             const subtotalElement = row.querySelector(".subtotal span");
-            //             const newSubtotal = price * quantity;
-            //             subtotalElement.textContent = `₹${newSubtotal.toFixed(2)}`;
-
-            //             updateCartTotal();
-
-            //             try {
-            //                 const response = await fetch(`/updateQty`, {
-            //                     method: 'POST',
-            //                     headers: { 'Content-Type': 'application/json' },
-            //                     body: JSON.stringify({ productId, quantity })
-            //                 });
-            //                 const data = await response.json();
-            //                 if (data.success) {
-            //                     document.getElementById("cartTotal").textContent = `₹${data.newTotal.toFixed(2)}`;
-            //                     document.getElementById("grandTotal").textContent = `₹${data.newTotal.toFixed(2)}`;
-            //                 } else {
-            //                     console.error("Failed to update cart:", data.message);
-            //                 }
-            //             } catch (error) {
-            //                 console.error("Error updating cart:", error);
-            //             }
-            //         });
-            //     });
-            // });
         </script>

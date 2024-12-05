@@ -14,17 +14,17 @@ const showCart = async (req, res) => {
             return res.status(404).redirect("/login");
         }
         const cart = await Cart.findOne({ userId }).populate("items.productId") || [];
-        if (cart && cart.length>0) {
+        if (cart) {
             const activeItems = cart.items.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
-            cart.items=activeItems;
+            console.log("at",activeItems)
+            const activeTotal = Array.isArray(cart.items) ? activeItems.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
             const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
-            return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
-        }else if(cart){
+            return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user , activeTotal:activeTotal});
+        }else{
             const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
-            return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user });
+            return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user,activeTotal:cartTotal });
 
         }
-        return res.status(404).render("cart", { user: user, cartTotal: 0 });  
     } catch (error) {
         console.error("Error showing cart:", error);
         res.status(500).send("Error showing cart");
@@ -63,8 +63,14 @@ const addToCart = async (req, res) => {
             const itemIndex = cart.items.findIndex(item => item.productId.equals(productId));
 
             if (itemIndex > -1) {
-                cart.items[itemIndex].quantity += quantityNumber;
+                if(product.quantity > cart.items[itemIndex].quantity){
+                    cart.items[itemIndex].quantity += quantityNumber;
                 cart.items[itemIndex].totalPrice = cart.items[itemIndex].quantity * productPrice;
+
+                }else{
+                    return  res.status(500).json({message:"Product limit reached"});
+                }
+                
             } else {
                 cart.items.push({
                     productId,
@@ -119,7 +125,7 @@ const getCheckOut = async (req, res) => {
         const addresses = (await Address.findOne({ userId })) || [];
 
         let totalPrice;
-        let deliveryCharge=40;
+        
 
         if (productId) {
            
@@ -141,6 +147,7 @@ const getCheckOut = async (req, res) => {
             if (activeItems.length === 0) {
                 return res.render('checkout', { cart: null,  addresses: addresses.address, totalPrice: 0, product: null, user });
             }
+            cartItems.items=activeItems;
             console.log("acct",activeItems)
 
             totalPrice = activeItems.reduce((sum, item) => sum + item.totalPrice, 0);

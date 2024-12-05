@@ -184,6 +184,58 @@
       text-align: center;
       padding: 50px;
     }
+  .chat-box {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    max-height: 400px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .chat-content {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .chat-footer {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+  }
+
+  #chat-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 5px;
+  }
+
+  #send-btn {
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+</style>
+
   </style>
 
   <main class="main">
@@ -288,13 +340,19 @@
                     <div class="price-container">
                       <div class="offer-price">₹<%= product.salePrice %>
                       </div>
-                      <% if (product.regularPrice && product.regularPrice> product.salePrice) { %>
-                        <div class="original-price">₹<%= product.regularPrice %>
+                      <% if (product.productOffer>product.category.categoryOffer) { %>
+                        <div class="original-price">₹<%= Math.ceil(product.salePrice/(1-(product.productOffer/100))) %>
                         </div>
                         <div class="discount-tag">
-                          -<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%
+                          -<%=product.productOffer%>%
                         </div>
-                        <% } %>
+                        <% }else if((product.category.categoryOffer) > (product.productOffer)){ %>
+                          <div class="original-price">₹<%= Math.ceil(product.salePrice/(1-(product.category.categoryOffer/100))) %>
+                          </div>
+                          <div class="discount-tag">
+                            -<%=product.category.categoryOffer%>%
+                          </div>
+                          <% }%>
                     </div>
                   </div>
                 </a>
@@ -309,6 +367,17 @@
       </div>
     </section>
   </main>
+
+  <div id="chat-box" class="chat-box">
+    <div class="chat-header">Chat with us!</div>
+    <div class="chat-content">
+    </div>
+    <div class="chat-footer">
+      <input type="text" id="chat-input" placeholder="Type a message..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+  
 
   <script>
     const fetchAndUpdateProducts = async () => {
@@ -355,6 +424,33 @@
 
     document.getElementById("sortOptions").addEventListener("change", fetchAndUpdateProducts);
     document.getElementById("categoryFilter").addEventListener("change", fetchAndUpdateProducts);
+
+
+
+
+    document.getElementById('send-btn').addEventListener('click', () => {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (message) {
+      const chatContent = document.querySelector('.chat-content');
+      const messageDiv = document.createElement('div');
+      messageDiv.textContent = `You: ${message}`;
+      chatContent.appendChild(messageDiv);
+      input.value = '';
+      
+      fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        const replyDiv = document.createElement('div');
+        replyDiv.textContent = `Bot: ${data.reply}`;
+        chatContent.appendChild(replyDiv);
+      });
+    }
+  });
   </script>
 
   <%- include("../partials/user/footer.ejs") %>

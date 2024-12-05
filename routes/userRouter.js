@@ -59,6 +59,8 @@ router.post("/signup", userController.signup);
 router.post("/verify-otp", userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
 
+router.post('/chat',userController.chatBotEndPoint)
+
 //google auth routes
 
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));

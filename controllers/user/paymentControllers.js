@@ -104,12 +104,24 @@ const retryPayment = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to retry payment' });
     }
 };
-
+const ondismiss = async (req,res) => {
+    try {
+        console.log("query orderId in dismisssal function",req.body)
+        const orderId = req.body.orderId;
+        const orderData = await Order.findByIdAndDelete({_id:orderId});
+        console.log("order Data",orderData)
+        return res.status(200).json({success:true})
+    } catch (error) {
+        console.log(error);
+        
+    }
+}
 
 
 
 module.exports = {
     createPayment,
     updatePaymentStatus,
-    retryPayment
+    retryPayment,
+    ondismiss
 }

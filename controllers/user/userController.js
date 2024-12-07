@@ -401,37 +401,8 @@ const searchResult = async (req, res) => {
     console.log("error in searching", error);
   }
 };
-const API_KEY ="AIzaSyAmMONpQKoZvAcE111_eHFClW7w-7x1c2o";
-const chatBotEndPoint  =async (req,res) => {
-  const { message } = req.body;
-
-  const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-const prompt = message;
-console.log(req.body)
-const result = await model.generateContent(prompt);
-return res.json(result.response.text());
-  
-//   try {
-//     const response = await axios.post('https://aistudio.googleapis.com/v1beta3/models/gemini-chat:predict', {
-//         prompt: userMessage,
-//     }, {
-//         headers: {
-//             'Authorization': `Bearer ${API_KEY}`,
-//             'Content-Type': 'application/json'
-//         }
-//     });
-    
-//     console.log(response.data); // Log response data to verify
-// } catch (error) {
-//     console.error('Error with API request:', error); // More specific error log
-// }
-
-}
 module.exports = {
   loadHomepage,
-  chatBotEndPoint,
   loadShopPage,
   loadSignup,
   loadShopping,

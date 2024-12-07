@@ -14,6 +14,7 @@ const { trusted } = require("mongoose");
 
 const createOrder = async (req, res) => {
   try {
+    console.log("entered create order")
     const user = await User.findById({ _id: req.session.user });
     const data = req.body.formData ? req.body.formData : req.body;
     console.log("create order data:", data);
@@ -76,29 +77,13 @@ const createOrder = async (req, res) => {
       }
       console.log("coupon applied");
     }
-
-    if (cartData && Object.values(cartData).length > 0) {
-      for (const item of Object.values(cartData)) {
-        await Product.findByIdAndUpdate(
-          { _id: item.productId },
-          { $inc: { quantity: -item.quantity } }
-        );
-      }
-    }
-
-    if (singleProductId && singleProductQuantity) {
-      await Product.findByIdAndUpdate(
-        { _id: singleProductId },
-        { $inc: { quantity: -parseInt(singleProductQuantity, 10) } }
-      );
-    }
-
     let orderedItems = [];
+    console.log("singleProduct:",singleProduct,"singleQuantity:",singleProductQuantity,"singleProductId:",singleProductId)
     const product = singleProduct ? JSON.parse(singleProduct) : null;
     if (product && product._id) {
       orderedItems.push({
         product: product._id,
-        quantity: 1,
+        quantity: singleProductQuantity,
         price: product.salePrice,
       });
     } else if (cart) {
@@ -138,11 +123,8 @@ const createOrder = async (req, res) => {
     await newOrder.save();
     user.orderHistory.push(newOrder._id);
     await user.save();
-    console.log("address of order:", address, "newOrder:", newOrder);
-
-    payment_option == "online"
-      ? res.status(200).json({ success: "true", orderId: newOrder._id })
-      : res.render("orderSuccess", { orderId: newOrder._id });
+    payment_option == "online"? res.status(200).json({ success: "true", orderId: newOrder._id })
+    : res.render("orderSuccess", { orderId: newOrder._id });
 
     // return res.render("orderSuccess", { orderId: newOrder._id });
   } catch (error) {

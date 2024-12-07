@@ -59,8 +59,6 @@ router.post("/signup", userController.signup);
 router.post("/verify-otp", userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
 
-router.post('/chat',userController.chatBotEndPoint)
-
 //google auth routes
 
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
@@ -109,7 +107,8 @@ router.post("/submit-return",auth.userAuth,orderController.returnSubmit)
 router.post("/apply-coupon",auth.userAuth,orderController.applyCoupon);
 router.post("/createPayment",auth.userAuth,paymentController.createPayment);
 router.post("/updatePayment",auth.userAuth,paymentController.updatePaymentStatus);
-router.post("/retry-payment",auth.userAuth,paymentController.retryPayment)
+router.post("/retry-payment",auth.userAuth,paymentController.retryPayment);
+router.post("/ondismiss",auth.userAuth,paymentController.ondismiss)
 
 router.get("/wishlist",auth.userAuth,wishlistController.getWishlist);
 router.get("/addWishlist",auth.userAuth,wishlistController.addWishlist);

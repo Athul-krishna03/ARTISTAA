@@ -295,7 +295,40 @@
                 window.location.reload();
             }
 
+            function validateAddress() {
+                const addressRadioButtons = document.querySelectorAll('input[name="selectedAddress"]');
+                const paymentOption = document.querySelector('input[name="payment_option"]:checked').value;
 
+                console.log("addd", addressRadioButtons, address)
+
+                let addressSelected = false;
+
+                addressRadioButtons.forEach((radio) => {
+                    if (radio.checked) {
+                        addressSelected = true;
+                    }
+                });
+
+                if (!addressSelected) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Address Required',
+                        text: 'Please select an address before proceeding.',
+                        confirmButtonText: 'Okay',
+                        confirmButtonColor: '#007bff',
+                        backdrop: true,
+                    });
+                    return false;
+                }
+
+
+                if (paymentOption === "online") {
+                    startRazorpayPayment();
+                    return false;
+                }
+
+                return true;
+            }
 
             async function startRazorpayPayment() {
                 try {
@@ -309,6 +342,8 @@
                         totalPrice: document.getElementById('subtotal').innerText.replace(/,/g, '').trim(),
                         cart: document.querySelector('input[name="cart"]').value,
                         singleProduct: document.querySelector('input[name="singleProduct"]')?.value || "null",
+                        singleProductId:document.querySelector('input[name="singleProductId"]')?.value || "null",
+                        singleProductQuantity:document.querySelector('input[name="singleProductQuantity"]')?.value || "null",
                         address: document.getElementById('address').value
                     };
 
@@ -336,8 +371,6 @@
                         });
 
                     }
-
-                    // Create the Razorpay payment
                     const paymentResponse = await fetch('/createPayment', {
                         method: 'POST',
                         headers: {
@@ -418,6 +451,39 @@
                         theme: {
                             color: "#39b4ac",
                         },
+                        modal: {
+                            ondismiss: async () => {
+                            try {
+                                await Swal.fire({
+                                icon: 'error',
+                                title: 'Payment Failed',
+                                text: 'Online payment failed',
+                                toast: true,
+                            } );
+
+                                
+                        const response = await fetch('/ondismiss', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body:JSON.stringify({orderId:orderId}),
+                        });
+                    if (!response.ok) {
+                        throw new Error(`Failed to update stock: ${response.statusText}`);
+                    }
+                window.location.href = '/';
+        } catch (error) {
+            console.error('Error during modal dismiss handling:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong while updating the stock.',
+            });
+        }
+    },
+}
+
                     };
 
                     const razorpay = new Razorpay(options);
@@ -471,41 +537,6 @@
                         backdrop: true,
                     });
                 }
-            }
-
-            function validateAddress() {
-                const addressRadioButtons = document.querySelectorAll('input[name="selectedAddress"]');
-                const paymentOption = document.querySelector('input[name="payment_option"]:checked').value;
-
-                console.log("addd", addressRadioButtons, address)
-
-                let addressSelected = false;
-
-                addressRadioButtons.forEach((radio) => {
-                    if (radio.checked) {
-                        addressSelected = true;
-                    }
-                });
-
-                if (!addressSelected) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Address Required',
-                        text: 'Please select an address before proceeding.',
-                        confirmButtonText: 'Okay',
-                        confirmButtonColor: '#007bff',
-                        backdrop: true,
-                    });
-                    return false;
-                }
-
-
-                if (paymentOption === "online") {
-                    startRazorpayPayment();
-                    return false;
-                }
-
-                return true;
             }
             function applyCoupon() {
                 const couponCode = document.getElementById('couponCode').value.trim();

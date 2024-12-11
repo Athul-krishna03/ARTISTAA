@@ -14,9 +14,8 @@ const showCart = async (req, res) => {
             return res.status(404).redirect("/login");
         }
         const cart = await Cart.findOne({ userId }).populate("items.productId") || [];
-        if (cart) {
+        if (cart && cart.items) {
             const activeItems = cart.items.filter(item => item.productId && !item.productId.isBlocked && item.productId.quantity >= item.quantity);
-            console.log("at",activeItems)
             const activeTotal = Array.isArray(cart.items) ? activeItems.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
             const cartTotal = Array.isArray(cart.items) ? cart.items.reduce((acc, item) => acc + item.totalPrice, 0) : 0;
             return res.render("cart", { cart: cart, cartTotal: cartTotal, user: user , activeTotal:activeTotal});
@@ -42,8 +41,6 @@ const addToCart = async (req, res) => {
         const quantityNumber = parseInt(quantity, 10); 
 
         const product = await Product.findById({ _id: productId });
-        console.log(product);
-        
         const productPrice = product.salePrice;
         const itemTotalPrice = productPrice * quantityNumber;
         
@@ -63,7 +60,7 @@ const addToCart = async (req, res) => {
             const itemIndex = cart.items.findIndex(item => item.productId.equals(productId));
 
             if (itemIndex > -1) {
-                if(product.quantity > cart.items[itemIndex].quantity){
+                if(product.quantity > cart.items[itemIndex].quantity && cart.items[itemIndex].quantity < 5 ){
                     cart.items[itemIndex].quantity += quantityNumber;
                 cart.items[itemIndex].totalPrice = cart.items[itemIndex].quantity * productPrice;
 
@@ -131,7 +128,7 @@ const getCheckOut = async (req, res) => {
            
             const product = await Product.findById(productId);
             if (!product || product.isBlocked) {
-                return res.status(404).redirect("/pageNotFound");
+                return res.status(404).json("/pageNotFound");
             }
            
              totalPrice = product.salePrice*qty
@@ -148,8 +145,6 @@ const getCheckOut = async (req, res) => {
                 return res.render('checkout', { cart: null,  addresses: addresses.address, totalPrice: 0, product: null, user });
             }
             cartItems.items=activeItems;
-            console.log("acct",activeItems)
-
             totalPrice = activeItems.reduce((sum, item) => sum + item.totalPrice, 0);
             return res.render('checkout', { cart: cartItems, addresses: addresses.address, totalPrice, product: null, user });
         }

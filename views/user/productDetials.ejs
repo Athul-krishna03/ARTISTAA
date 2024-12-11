@@ -166,9 +166,8 @@
         }
 
         async function addToCart(itemId) {
-                console.log(itemId)
                 try {
-                    const response = await fetch(`/addCart?productId=${itemId}&quantity=1`, {
+                    const response = await fetch(`/addCart?productId=${itemId}&quantity=${quantity}`, {
                         method: 'get',
                         headers: {
                             "Accept": "application/json",

@@ -690,7 +690,7 @@ b {
   padding: 10px 40px;
   color: #ffffff;
   border: none;
-  background-color: #171818;
+  background-color: #088178;
   border-radius: 4px;
 }
 
@@ -701,7 +701,7 @@ b {
 }
 
 .btn.btn-primary:hover {
-  background-color: #eb6003;
+  background-color: #046963;
 }
 
 .btn.btn-secondary {

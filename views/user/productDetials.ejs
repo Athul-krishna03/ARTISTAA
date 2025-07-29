@@ -20,27 +20,33 @@
                                     <div class="detail-gallery">
                                         <span class="zoom-icon"><i class="fi-rs-search"></i></span>
                                         <!-- MAIN SLIDES -->
+                                        <% const imgSrc1=data.productImage[0]?.startsWith('http') ? data.productImage[0]
+                                        : '/uploads/re-image/' + data.productImage[0]; %>
+                                        <% const imgSrc2=data.productImage[1]?.startsWith('http') ? data.productImage[1]
+                                        : '/uploads/re-image/' + data.productImage[0]; %>
+                                        <% const imgSrc3=data.productImage[2]?.startsWith('http') ? data.productImage[2]
+                                        : '/uploads/re-image/' + data.productImage[0]; %>
                                         <div class="product-image-slider">
                                             <figure class="border-radius-10">
-                                                <img src="/uploads/re-image/<%= data.productImage[0] %>"
+                                                <img src="<%= imgSrc1 %>"
                                                     alt="product image">
                                             </figure>
                                             <figure class="border-radius-10">
-                                                <img src="/uploads/re-image/<%= data.productImage[1] %>"
+                                                <img src="<%= imgSrc2 %>"
                                                     alt="product image">
                                             </figure>
                                             <figure class="border-radius-10">
-                                                <img src="/uploads/re-image/<%= data.productImage[2] %>"
+                                                <img src="<%= imgSrc3 %>"
                                                     alt="product image">
                                             </figure>
                                         </div>
 
                                         <div class="slider-nav-thumbnails pl-15 pr-15">
-                                            <div><img src="/uploads/re-image/<%= data.productImage[0] %>"
+                                            <div><img src="<%= imgSrc1 %>"
                                                     alt="product image"></div>
-                                            <div><img src="/uploads/re-image/<%= data.productImage[1] %>"
+                                            <div><img src="<%= imgSrc2 %>"
                                                     alt="product image"></div>
-                                            <div><img src="/uploads/re-image/<%= data.productImage[2] %>"
+                                            <div><img src="<%= imgSrc3 %>"
                                                     alt="product image"></div>
                                         </div>
                                     </div>

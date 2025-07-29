@@ -19,7 +19,6 @@ app.use(session({
         secure:false,
         httpOnly:true,
         maxAge:72*60*60*1000
-       
     }
 }))
 
@@ -46,11 +45,8 @@ app.use((req,res)=>{
 
 app.listen(process.env.PORT,()=>{
     console.log("server Running");
-   
-    
-    
 })
- 
+
 
 
 module.exports=app

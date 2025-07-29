@@ -181,8 +181,10 @@
     <div class="order-details-card">
         <h4 class="mb-4">Order Products</h4>
         <% order.orderedItems.forEach((item) => { %>
+            <% const imgSrc=item.product.productImage[0]?.startsWith('http') ? item.product.productImage[0]
+              : '/uploads/re-image/' + item.product.productImage[0]; %>
         <div class="product-item">
-            <img src="uploads/re-image/<%= item.product.productImage[0] %>" 
+            <img src="<%=imgSrc%>" 
                 alt="<%= item.product.productName %>" 
                 class="product-image" 
                 width="100" 

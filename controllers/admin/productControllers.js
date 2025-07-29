@@ -22,15 +22,7 @@ const addProducts = async (req,res) => {
             productName:products.productName
         });
         if(!productExists){
-            const images = [];
-            if(req.files && req.files.length > 0){
-                for(let i=0;i<req.files.length;i++){
-                    const originalImagePath = req.files[i].path;
-                    const resizedImagePath = path.join("public","uploads","product-images",req.files[i].filename);
-                    await sharp(originalImagePath).resize({width:440,heigth:440}).toFile(resizedImagePath);
-                    images.push(req.files[i].filename);
-                }
-            }
+            const images = req.files.map((file) => file.path);
 
             const category = await Category.findOne({name:products.category});
             console.log(category)
@@ -211,14 +203,14 @@ const editProduct = async (req,res) => {
         if(existingProduct){
             return res.status(400).json({error:"Product with this name already exist"});
         }
-        const images = [];
+        // const images = [];
 
-        if(req.files && req.files.length > 0){
-            for(let i=0;i<req.files.length;i++){
-                images.push(req.files[i].filename);
-            }
-        }
-
+        // if(req.files && req.files.length > 0){
+        //     for(let i=0;i<req.files.length;i++){
+        //         images.push(req.files[i].filename);
+        //     }
+        // }
+        const images = req.files.map((file) => file.path);
         const updateFields ={
             productName:data.productName,
             description:data.descriptionData,
@@ -227,7 +219,7 @@ const editProduct = async (req,res) => {
             regularPrice:data.regularPrice,
             salePrice:data.salePrice,
             quantity:data.quantity,
-            size:data.size,
+            size:data.size, 
             color:data.color
         }
         if(req.files.length>0){

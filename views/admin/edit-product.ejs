@@ -1,7 +1,11 @@
 <%- include("../../views/partials/admin/header") %>
 
 <head>
+<<<<<<< HEAD
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+=======
+    <link rel="stylesheet"  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+>>>>>>> 4769f21 (udate)
 </head>
 <style>
     .image-upload-box {
@@ -146,10 +150,12 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <% for(let i=0;i<4;i++){ %>
+                                            <% const imgSrc=product.productImage[i]?.startsWith('http') ? product.productImage[i]
+                                 : '/uploads/re-image/' + product.productImage[i]; %>
                                             <div class="col-md-3 mb-3">
                                                 <div class="image-upload-box" id="imageBox<%= i %>" data-index="<%= i %>">
                                                     <button type="button" class="remove-image-btn" data-index="<%= i %>">&times;</button>
-                                                    <img src="/uploads/re-image/<%= product.productImage[i] %>"  id="previewImage<%= i %>" >
+                                                    <img src="<%= imgSrc%>"  id="previewImage<%= i %>" >
                                                     <div class="text-center">
                                                         <i class="fas fa-cloud-upload-alt"></i>
                                                         <p>Choose Image</p>
@@ -199,7 +205,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
 let currentImageIndex = 0;
 let cropper;
@@ -208,7 +214,7 @@ let imageName;
 
 document.querySelectorAll('.remove-image-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const productId = document.getElementById('productId').value; // Assuming productId is stored in an input element
+        const productId = document.getElementById('productId').value; 
         const index = this.dataset.index;
         const imageBox = document.getElementById(`imageBox${index}`);
         const previewImg = imageBox.querySelector('img');

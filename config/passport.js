@@ -7,7 +7,7 @@ passport.use(new googleStrategy({
       clientSecret:process.env.GOOGLE_CLIENT_SECRET,
       callbackURL:"/auth/google/callback"
 },
-async (profile,done)=> {
+async (accessToken, refreshToken, profile,done)=> {
    try {
       let user=await User.findOne({googleId:profile.id});
       console.log(profile)

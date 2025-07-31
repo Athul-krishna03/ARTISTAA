@@ -63,56 +63,56 @@ const addProducts = async (req,res) => {
         
     }
 }
-const getAllProducts =async (req,res) => {
+const getAllProducts = async (req, res) => {
     try {
         const search = req.query.search || "";
-        const page = req.query.page || 1;
+        const page = parseInt(req.query.page) || 1;
         const limit = 4;
 
-        const products = await Product.find({
-            $or:[
-                {productName:{$regex: new RegExp(".*"+search+".*","i")}},
-                {brand:{$regex: new RegExp(".*"+search+".*","i")}},
-            ],
-        })
-        .sort({createdAt:-1})
-        .limit(limit*1)
-        .skip((page-1)*limit)  
-        .populate("category");
+        const query = {
+        $or: [
+            { productName: { $regex: search, $options: "i" } },
+            { brand: { $regex: search, $options: "i" } }
+        ]
+        };
 
-        console.log(products)
+        const [products, count] = await Promise.all([
+        Product.find(query)
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .skip((page - 1) * limit)
+            .populate("category"),
 
-        const count= await Product.find({
-            $or:[
-                {productName:{$regex: new RegExp(".*"+search+".*","i")}},
-                {brand:{$regex: new RegExp(".*"+search+".*","i")}},
-            ],
-        }).countDocuments();
+        Product.countDocuments(query)
+        ]);
 
-        const category = await Category.find({isListed:true});
-        const brand = await Brand.find({isBlocked:false});
+        const totalPages = Math.ceil(count / limit);
 
-        if(category && brand){
-           res.render("products",{
-              data:products,
-              currentPage:page,
-              totalPages:Math.ceil(count/limit),
-              cat:category,
-              brand:brand,
-              activePage: 'products'
-           })
-        }else{
-            res.render("/pageerror")
+        if (req.headers.accept?.includes("application/json")) {
+        return res.json({ data: products, currentPage: page, totalPages });
         }
 
-        
+        const category = await Category.find({ isListed: true });
+        const brand = await Brand.find({ isBlocked: false });
 
+        if (category && brand) {
+        res.render("products", {
+            data: products,
+            currentPage: page,
+            totalPages,
+            cat: category,
+            brand: brand,
+            activePage: "products"
+        });
+        } else {
+        res.render("pageerror");
+        }
     } catch (error) {
-        res.redirect("/pageerror")
-        console.log("product listing error",error);
-        
+        console.log("Product listing error:", error);
+        res.redirect("/pageerror");
     }
-}
+};
+
 
 const addProductOffer = async(req,res)=>{
     try {

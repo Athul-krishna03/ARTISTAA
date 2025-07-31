@@ -41,7 +41,7 @@ router.post("/editCategory",auth.adminAuth,categoryController.EditCategory)
 router.get("/brands",auth.adminAuth,brandController.getBrands);
 router.post("/addBrand",auth.adminAuth,uploads.single("image"),brandController.addBrand);
 router.patch("/blockBrand",auth.adminAuth,brandController.blockBrand);
-router.get("/deleteBrand",auth.adminAuth,brandController.deleteBrand);
+router.delete("/deleteBrand",auth.adminAuth,brandController.deleteBrand);
 
 //banner
 

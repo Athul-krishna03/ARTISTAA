@@ -1,14 +1,18 @@
 const express=require("express");
 const path=require("path")
 const app=express();
-const env=require("dotenv").config();
 const db=require("./config/db");
 const session=require("express-session");
 const userRouter=require("./routes/userRouter");
 const adminRouter=require("./routes/adminRouter")
 const passport= require("./config/passport");
 const redis = require('./helpers/redisClient');
+const logger = require('./helpers/logger');
+const requestLogger = require('./middlewares/requestLogger');
+
+
 db()
+require("dotenv").config();
 
 
 app.use(express.json());
@@ -26,6 +30,7 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(requestLogger);
 
 
 app.use((req,res,next)=>{
@@ -47,6 +52,7 @@ app.use((req,res)=>{
 
 app.listen(process.env.PORT,()=>{
     console.log("server Running");
+    logger.info(`Server started on port ${process.env.PORT}`);
 })
 
 

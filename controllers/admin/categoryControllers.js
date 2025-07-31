@@ -2,31 +2,46 @@ const Category = require("../../models/categorySchema");
 const  Product= require("../../models/productSchema");
 
 
-const categoryInfo = async (req,res) => {
+const categoryInfo = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit =4;
-        const skip =(page-1)*limit;
+        const limit = 4;
+        const skip = (page - 1) * limit;
+        const search = req.query.search || "";
 
-        const categoryData = await Category.find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
+        const searchQuery = search
+            ? { name: { $regex: search, $options: "i" } } 
+            : {};
 
-        const totalCategories = await Category.countDocuments();
-        const totalPages = Math.ceil(totalCategories/limit);
-        res.render("category",{
-            cat:categoryData,
-            totalCategories:totalCategories,
-            totalPages:totalPages,
-            currentPage:page,
-            activePage: 'category'
-        })
-        
+        const categoryData = await Category.find(searchQuery)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+        const totalCategories = await Category.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalCategories / limit);
+        if (req.xhr || req.headers.accept.includes('application/json') || req.headers.accept.indexOf('json') > -1) {
+            return res.json({
+                data: categoryData,
+                totalPages,
+                currentPage: page,
+                totalCategories
+            });
+        }else{
+
+            res.render("category", {
+                cat: categoryData,
+                totalCategories,
+                totalPages,
+                currentPage: page,
+                activePage: 'category'
+            });
+        }
+
     } catch (error) {
-        console.log(error.message)
+        console.error("Error in categoryInfo:", error.message);
+        res.status(500).send("Internal Server Error");
     }
-}
+};
 
 const addCategory= async(req,res)=>{
     const {name,description}=req.body;

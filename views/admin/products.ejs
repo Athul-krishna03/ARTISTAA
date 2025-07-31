@@ -8,12 +8,17 @@
     </div>
 </div>
 <header class="card-header text-center mb-20">
-    <form action="" method="get" class="d-inline">
+    <form id="searchForm" class="d-inline" onsubmit="return false;">
         <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
-            <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search">
-            <button class="btn  border-0" type="submit">Search</button>
+        <input 
+        type="text" 
+        id="searchInput" 
+        class="form-control border-0 rounded-pill" 
+        placeholder="Search customers..." 
+        name="search"
+        >
         </div>
-    </form>
+        </form>
 </header>
 <div class="right mt-5">
     <table class="table table-striped">
@@ -30,7 +35,7 @@
                 <th scope="col"><b>Edit</b></th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="product-table-body">
             <% for(let i = 0;i<data.length;i++){%>
             
             <tr>
@@ -103,16 +108,12 @@
 
 <div class="container mt-3">
     <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
- 
- 
-            <% for (let i = 1; i <= totalPages; i++) { %>
-            <li class="page-item <%=(i === currentPage) ? 'active' : '' %>">
-                <a style="z-index: 100;" class="page-link" href="?page=<%= i %>"><%= i %></a>
-            </li>
-            <% } %>
- 
- 
+        <ul  id="pagination" class="pagination justify-content-center mb-20" style="margin-right: 200px;">
+            <% for(let i=1;i<=totalPages;i++){ %>
+                <li class="page-item <%= (i===currentPage) ? 'active' : '' %>">
+                    <a style="z-index: 100;" class="page-link" href="#" onclick="fetchProducts('<%= i %>', searchInput.value.trim())"><%= i %></a>
+                </li>
+            <% } %>        
         </ul>
     </nav>
  </div>
@@ -168,6 +169,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 <script>
 
 $(document).ready(function() {
@@ -324,7 +326,117 @@ async function toggleProductBlock(productId, block) {
         ? `<button class="btn btn-danger" style="width: 80px;" onclick="toggleProductBlock('${productId}', true)">Block</button>`
         : `<button class="btn btn-success" style="width: 80px;" onclick="toggleProductBlock('${productId}', false)">Unblock</button>`;
     }
+    const tableBody = document.getElementById("product-table-body");
+    const searchInput = document.querySelector("#searchInput");
+    const paginationContainer = document.querySelector(".pagination");
+    let currentPage = 1;
+
+    async function fetchProducts(page = 1, search = "") {
+        try {
+        const res = await fetch(`/admin/products?page=${page}&search=${encodeURIComponent(search)}`, {
+            headers: {
+            Accept: "application/json",
+            },
+        });
+        const data = await res.json();
+        currentPage = data.currentPage;
+        renderProducts(data.data);
+        renderPagination(data.totalPages, data.currentPage, search);
+        } catch (error) {
+        console.error("Error fetching products:", error);
+        }
+    }
+
+    function renderProducts(products) {
+        tableBody.innerHTML = products.map(product => {
+        const offer = product.productOffer || 0;
+        const isBlocked = product.isBlocked;
+
+        return `
+            <tr>
+            <td>
+                <a href="javascript:void(0);" 
+                class="product-name" 
+                data-id="${product._id}"
+                data-name="${product.productName}"
+                data-brand="${product.brand}"
+                data-category="${product.category.name}"
+                data-sale-price="${product.salePrice}"
+                data-offer-price="${product.productOffer}"
+                data-stock="${product.quantity}"
+                data-description="${product.description}"
+                data-images='${JSON.stringify(product.productImage)}'>
+                ${product.productName}
+                </a>
+            </td>
+            <td>${product.brand}</td>
+            <td>${product.category.name}</td>
+            <td>${product.salePrice}</td>
+            <td>${offer}</td>
+            <td>
+                ${offer === 0
+                ? `<button class="btn btn-info" onclick="addOffer('${product._id}')" style="width: 100px;"><a href="#" class="text-white">Add Offer</a></button>`
+                : `<button class="btn btn-info" onclick="removeOffer('${product._id}')" style="width: 100px;"><a href="#" class="text-white">Remove</a></button>`}
+            </td>
+            <td>${product.quantity}</td>
+            <td id="product-action-${product._id}">
+                ${isBlocked
+                ? `<button class="btn btn-success" style="width: 80px;" onclick="toggleProductBlock('${product._id}', false)">Unblock</button>`
+                : `<button class="btn btn-danger" style="width: 80px;" onclick="toggleProductBlock('${product._id}', true)">Block</button>`}
+            </td>
+            <td>
+                <button class="btn btn-info" style="width: 80px;">
+                <a href="/admin/editProduct?id=${product._id}" class="text-white" style="text-decoration: none;">Edit</a>
+                </button>
+            </td>
+            </tr>`;
+        }).join("");
+    }
+
+    function renderPagination(totalPages, currentPage, search = "") {
+        let html = "";
+        for (let i = 1; i <= totalPages; i++) {
+        html += `
+            <li class="page-item ${i == currentPage ? "active" : ""}">
+            <a class="page-link" href="#" onclick="fetchProducts(${i}, '${search}')">${i}</a>
+            </li>`;
+        }
+        paginationContainer.innerHTML = html;
+    }
+
+    const debouncedSearch = _.debounce(() => {
+        const search = searchInput.value.trim();
+        fetchProducts(1, search);
+    }, 500);
+
+    searchInput.addEventListener("input", debouncedSearch);
+
+    // Optional: delegate modal click rebind after DOM change
+    document.addEventListener("click", function (e) {
+        if (e.target.matches(".product-name")) {
+        const el = e.target;
+        $("#productName").text(el.dataset.name);
+        $("#productBrand").text(el.dataset.brand);
+        $("#productCategory").text(el.dataset.category);
+        $("#productSalePrice").text(el.dataset.salePrice);
+        $("#productOfferPrice").text(el.dataset.offerPrice);
+        $("#productStock").text(el.dataset.stock);
+        $("#productDescription").text(el.dataset.description);
+
+        const images = JSON.parse(el.dataset.images);
+        const carouselInner = $("#productImageCarousel .carousel-inner");
+        carouselInner.empty();
+        images.forEach((img, idx) => {
+            carouselInner.append(`
+            <div class="carousel-item ${idx === 0 ? "active" : ""}">
+                <img src="/uploads/re-image/${img}" class="d-block w-90" alt="Product Image">
+            </div>`);
+        });
+
+        $("#productModal").modal("show");
+        }
+    });
+    fetchProducts();
 
 </script>
 
-<%- include("../../views/partials/admin/footer") %>

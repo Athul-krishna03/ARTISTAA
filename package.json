@@ -4,7 +4,9 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "author": "",
   "license": "ISC",
@@ -33,6 +35,12 @@
     "razorpay": "^2.9.5",
     "redlock": "^5.0.0-beta.2",
     "sharp": "^0.33.5",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "eslint": "^9.32.0",
+    "globals": "^16.3.0"
   }
 }

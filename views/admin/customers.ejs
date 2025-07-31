@@ -7,11 +7,17 @@
         </div>
         
             <header class="card-header text-center mb-20">
-                <form action="/admin/users/" method="get" class="d-inline">
-                    <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
-                        <input type="text" class="form-control border-0 rounded-pill" placeholder="Search customers..." name="search">
-                        <button class="btn  border-0" type="submit">Search</button>
-                    </div>
+                <form id="searchForm" class="d-inline" onsubmit="return false;">
+                <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
+                    <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="form-control border-0 rounded-pill" 
+                    placeholder="Search customers..." 
+                    name="search"
+                    >
+                    <!-- <button class="btn border-0" onclick="handleSearch()">Search</button> -->
+                </div>
                 </form>
             </header>
             <div class="right mt-5">
@@ -24,7 +30,7 @@
                         <th scope="col"><b>Action</b></th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="user-table-body">
                         <% for(let i=0; i<data.length; i++) { %>
                             <tr id="user-row-<%= data[i].id %>">
                                 <td><%= data[i].username %></td>
@@ -44,16 +50,17 @@
         </div>
         <div class="container mt-3">
             <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center mb-20" style="margin-right: 200px;">
+                <ul  id="pagination" class="pagination justify-content-center mb-20" style="margin-right: 200px;">
                     <% for(let i=1;i<=totalPages;i++){ %>
                         <li class="page-item <%= (i===currentPage) ? 'active' : '' %>">
-                            <a style="z-index: 100;" class="page-link" href="?page= <%=  i %>"><%= i %></a>
+                            <a style="z-index: 100;" class="page-link" href="#" onclick="fetchCustomers('<%= i %>', searchInput.value.trim())"><%= i %></a>
 
                         </li>
                     <% } %>        
                 </ul>
             </nav>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
         <script>
             async function blockUser(userId) {
                 const result = await Swal.fire({
@@ -113,6 +120,65 @@
                     ? `<button class="btn btn-success" style="width: 80px;" onclick="unBlockUser('${userId}')">Unblock</button>`
                     : `<button class="btn btn-danger" style="width: 80px;" onclick="blockUser('${userId}')">Block</button>`;
             }
+
+            const tableBody = document.getElementById("user-table-body");
+            const paginationContainer = document.getElementById("pagination");
+            const searchInput = document.querySelector("input[name='search']");
+
+            let currentPage = 1;
+
+            async function fetchCustomers(page = 1, search = "") {
+                try {
+                    const res = await fetch(`/admin/users?page=${page}&search=${encodeURIComponent(search)}`,{
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    console.log(data)
+                    currentPage = data.currentPage;
+                    renderUsers(data.data);
+                    renderPagination(data.totalPages, data.currentPage, search);
+                } catch (error) {
+                    console.error("Error fetching customers:", error);
+                }
+            }
+
+            function renderUsers(users) {
+                tableBody.innerHTML = users.map(user => `
+                    <tr id="user-row-${user._id}">
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone}</td>
+                        <td>
+                            ${user.isBlocked 
+                                ? `<button class="btn btn-success" style="width: 80px;" onclick="unBlockUser('${user._id}')">Unblock</button>`
+                                : `<button class="btn btn-danger" style="width: 80px;" onclick="blockUser('${user._id}')">Block</button>`
+                            }
+                        </td>
+                    </tr>
+                `).join("");
+            }
+
+            function renderPagination(totalPages, currentPage, search = "") {
+                let html = "";
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a style="z-index: 100;" class="page-link" href="#" onclick="fetchCustomers(${i}, '${search}')">${i}</a>
+                        </li>
+                    `;
+                }
+                paginationContainer.innerHTML = html;
+            }
+
+            const debouncedSearch = _.debounce(() => {
+                const search = searchInput.value.trim();
+                fetchCustomers(1, search);
+            }, 500);
+
+            searchInput.addEventListener("input", debouncedSearch);
+
+            // Initial load
+            fetchCustomers();
         </script>
 
         <%- include("../../views/partials/admin/footer") %>

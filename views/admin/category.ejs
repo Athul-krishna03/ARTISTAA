@@ -141,22 +141,18 @@
                         </button>
                       <% } %>
                     </td>
-                    <td class="text-start">
+                    <td class="text-start" id="category-status-<%= category._id %>">
                       <% if(category.isListed) {%>
                       <span class="badge rounded-pill alert-success" style="width: 60px">Listed</span>
-                      <% }else{ %>
+                      <% } else { %>
                       <span class="badge rounded-pill alert-danger" style="width: 60px">Unlisted</span>
                       <% } %>
                     </td>
-                    <td class="text-start">
-                      <% if(category.isListed){%>
-                      <button class="btn btn-danger" style="width: 70px">
-                        <a href="/admin/listCategory?id=<%= category._id %>" class="text-white">Unlist</a>
-                      </button>
-                      <% }else{ %>
-                      <button class="btn btn-success" style="width: 70px">
-                        <a href="/admin/unlistCategory?id=<%= category._id %>"  class="text-white">List</a>
-                      </button>
+                    <td class="text-start" id="category-action-<%= category._id %>">
+                      <% if(category.isListed) {%>
+                      <button class="btn btn-danger" style="width: 70px" onclick="unlistCategory('<%= category._id %>')">Unlist</button>
+                      <% } else { %>
+                      <button class="btn btn-success" style="width: 70px" onclick="listCategory('<%= category._id %>')">List</button>
                       <% } %>
                     </td>
                     <td class="text-start">
@@ -361,9 +357,68 @@
     }
     
   }
- 
+  async function unlistCategory(categoryId) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to unlist this category?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes'
+    });
 
+    if (result.isConfirmed) {
+      const res = await fetch('/admin/unlistCategory', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: categoryId })
+      });
 
+      const data = await res.json();
+      if (data.success) {
+        updateListActionButton(categoryId, false);
+      }
+    }
+  }
+
+  async function listCategory(categoryId) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you want to list this category?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes'
+    });
+
+    if (result.isConfirmed) {
+      const res = await fetch('/admin/listCategory', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: categoryId })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        updateListActionButton(categoryId, true);
+      }
+    }
+  }
+
+  function updateListActionButton(categoryId, isListed) {
+    const statusCell = document.getElementById(`category-status-${categoryId}`);
+    const actionCell = document.getElementById(`category-action-${categoryId}`);
+
+    if (isListed) {
+      statusCell.innerHTML = `<span class="badge rounded-pill alert-success" style="width: 60px">Listed</span>`;
+      actionCell.innerHTML = `<button class="btn btn-danger" style="width: 70px" onclick="unlistCategory('${categoryId}')">Unlist</button>`;
+    } else {
+      statusCell.innerHTML = `<span class="badge rounded-pill alert-danger" style="width: 60px">Unlisted</span>`;
+      actionCell.innerHTML = `<button class="btn btn-success" style="width: 70px" onclick="listCategory('${categoryId}')">List</button>`;
+    }
+  }
   </script>
 <%- include("../../views/partials/admin/footer") %>
 

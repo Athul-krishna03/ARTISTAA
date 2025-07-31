@@ -48,14 +48,14 @@ const addBrand = async (req,res) => {
 }
 const blockBrand=async(req,res)=>{
     try {
-        let id = req.query.id;
+        let {id} = req.body;
         const data=await Brand.findById({_id:id});
         if(data.isBlocked == true){
             await Brand.updateOne({_id:id},{$set:{isBlocked:false}})
-            res.redirect("/admin/brands");
+            res.json({success:true,message:"brand unBlock"})
         }else{
             await Brand.updateOne({_id:id},{$set:{isBlocked:true}});
-            res.redirect("/admin/brands");
+            res.json({success:true,message:"brand Block"})
         }
     } catch (error) {
         console.log(error)

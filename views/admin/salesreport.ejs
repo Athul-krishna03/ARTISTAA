@@ -140,7 +140,7 @@
                                     <%= k++ %>
                                 </td>
                                 <td data-customer-id="<%= orders[i].userId._id %>">
-                                    <%= orders[i].userId.username %>
+                                    <%= orders[i].userId.username || "" %>
                                 </td>
 
                                 <td>

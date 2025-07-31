@@ -76,16 +76,15 @@
                 
                 </td>
                 <td><%= data[i].quantity%></td>
-                <td>
-                   <% if(data[i].isBlocked === false){%>
-                    <button class="btn btn-danger" style="width: 80px;">
-                        <a href="/admin/blockProduct?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Block</a>
-                    </button>
-                    <% }else{%>
-                    
-                    <button class="btn btn-success" style="width: 80px;">
-                        <a href="/admin/blockProduct?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Unblock</a>
-                    </button>
+                <td id="product-action-<%= data[i]._id %>">
+                    <% if (data[i].isBlocked === false) { %>
+                        <button class="btn btn-danger" style="width: 80px;" onclick="toggleProductBlock('<%= data[i]._id %>', true)">
+                        Block
+                        </button>
+                    <% } else { %>
+                        <button class="btn btn-success" style="width: 80px;" onclick="toggleProductBlock('<%= data[i]._id %>', false)">
+                        Unblock
+                        </button>
                     <% } %>
                 </td>
                 <td>
@@ -289,6 +288,42 @@ function removeOffer(productId) {
         }
     });
 }
+async function toggleProductBlock(productId, block) {
+    const action = block ? 'block' : 'unblock';
+
+    const result = await Swal.fire({
+        title: `Are you sure?`,
+        text: `Do you want to ${action} this product?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: block ? '#d33' : '#28a745',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes'
+    });
+
+    if (result.isConfirmed) {
+        const res = await fetch('/admin/blockProduct', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: productId })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            updateProductBlockUI(productId, !block);
+        } else {
+            Swal.fire('Error', data.message || 'Failed to update product status.', 'error');
+        }
+        }
+    }
+
+    function updateProductBlockUI(productId, isBlocked) {
+        const actionCell = document.getElementById(`product-action-${productId}`);
+
+        actionCell.innerHTML = isBlocked
+        ? `<button class="btn btn-danger" style="width: 80px;" onclick="toggleProductBlock('${productId}', true)">Block</button>`
+        : `<button class="btn btn-success" style="width: 80px;" onclick="toggleProductBlock('${productId}', false)">Unblock</button>`;
+    }
 
 </script>
 

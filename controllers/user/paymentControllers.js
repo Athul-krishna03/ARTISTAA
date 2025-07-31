@@ -3,6 +3,7 @@ const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema")
 require("dotenv").config();
 const crypto = require('crypto');
+const PaymentLock = require('../../models/paymentLockSchema');
 
 const razorpay = new Razorpay({
 key_id:"rzp_test_fu3JZWbM4Hq2Jt",
@@ -11,6 +12,7 @@ key_secret:"Kw2OGnMFs469euAjIysokWgM"
 
 
 const createPayment = async (req, res) => {
+    const userId = req.session.user
     const { amount } = req.body;
     const amt = Number(amount)
     const options = {
@@ -22,9 +24,12 @@ const createPayment = async (req, res) => {
 
     try {
         const order = await razorpay.orders.create(options);
-        console.log("order",order)
+        if(order){
+            await PaymentLock.deleteOne({userId:userId})
+        }
         return res.json({ success: true, orderId: order.id });
     } catch (error) {
+        await PaymentLock.deleteOne({userId:userId})
         console.error(error);
         res.status(500).json({ success: false, message: 'Failed to create order' });
     }

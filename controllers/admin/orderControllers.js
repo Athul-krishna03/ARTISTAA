@@ -82,7 +82,7 @@ const getSalesReport = async (req,res) => {
         const limit = 10;
         const skip = (page-1)*limit;
         const orderData = await Order.find().populate("userId").populate("orderedItems.product").sort({createdOn:-1}).skip(skip).limit(limit);
-       console.log(orderData)
+        console.log("sales Data",orderData)
         const count = await Order.countDocuments();
         const totalPages =Math.ceil(count/limit);
         if(orderData){

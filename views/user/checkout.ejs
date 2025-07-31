@@ -355,20 +355,22 @@
                         },
                         body: JSON.stringify({ formData }),
                     });
-
+                    console.log("orderResponse",orderResponse);
+                    
                     const orderData = await orderResponse.json();
                     const orderId = orderData.orderId;
-                    console.log("orderId", orderId);
+                    console.log("orderId", orderId,orderData);
 
                     if (!orderData.success) {
                         Swal.fire({
                             icon: 'error',
-                            title: 'O',
-                            text: error.message,
+                            title: 'Payment Issue',
+                            text: orderData.message,
                             confirmButtonText: 'Okay',
                             confirmButtonColor: '#007bff',
                             backdrop: true,
                         });
+                        return
 
                     }
                     const paymentResponse = await fetch('/createPayment', {
@@ -376,7 +378,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ amount: finalAmount }),
+                        body: JSON.stringify({ amount: finalAmount ,orderId }),
                     });
                     console.log("payment response", paymentResponse)
 

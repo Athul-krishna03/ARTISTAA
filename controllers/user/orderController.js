@@ -1,21 +1,39 @@
 const User = require("../../models/userSchema");
-const Product = require("../../models/productSchema");
 const Order = require("../../models/orderSchema");
 const Address = require("../../models/addressSchema");
 const Coupon = require("../../models/couponSchema");
-const { loadShopping } = require("./userController");
 const Wallet = require("../../models/walletSchema");
 const Return = require("../../models/returnSchema");
 const PDFDocument = require("pdfkit");
-const fs = require("fs");
-const path = require("path");
-const { Transaction } = require("mongodb");
-const { trusted } = require("mongoose");
+const PaymentLock = require("../../models/paymentLockSchema");
+const redis = require('../../helpers/redisClient')
 
 const createOrder = async (req, res) => {
+  const user = await User.findById({ _id: req.session.user });
+    // const lock = await PaymentLock.findOne({ userId: user._id });
+    // console.log("lock",lock)
+    const lockKey = `lock:order:${user._id}`;
   try {
-    console.log("entered create order")
-    const user = await User.findById({ _id: req.session.user });
+    console.log("entered create order",req.session.user)
+    
+    const lock = await redis.set(lockKey, "locked", "NX", "PX", 60000);
+    if (!lock) {
+      return res.status(429).json({
+        success: false,
+        message:
+          "An order is already being processed. Please wait before placing another.",
+      });
+    }
+    // try {
+    //   let val=await PaymentLock.updateOne(
+    //     { userId: user._id },
+    //     { $setOnInsert: { createdAt: new Date() } },
+    //     { upsert: true }
+    //   );
+    //   console.log("Payment lock created or confirmed.",val);
+    // } catch (err) {
+    //   console.error("Failed to create payment lock:", err);
+    // }
     const data = req.body.formData ? req.body.formData : req.body;
     console.log("create order data:", data);
     const {
@@ -35,6 +53,7 @@ const createOrder = async (req, res) => {
     const addresses = await Address.findOne({ userId: req.session.user });
 
     if (!addresses || !addresses.address || addresses.address.length === 0) {
+      await redis.del(lockKey);
       return res
         .status(400)
         .json({ success: false, message: "No saved addresses found" });
@@ -44,6 +63,7 @@ const createOrder = async (req, res) => {
       (addr) => addr._id.toString() === address.toString()
     );
     if (!selectedAddress) {
+      await redis.del(lockKey);
       return res
         .status(404)
         .json({ success: false, message: "Selected address not found" });
@@ -63,6 +83,7 @@ const createOrder = async (req, res) => {
       const coupon = await Coupon.findOne({ code: couponCode });
       if (coupon) {
         if (coupon.userId.includes(user._id)) {
+          await redis.del(lockKey);
           return res
             .status(400)
             .json({
@@ -96,6 +117,7 @@ const createOrder = async (req, res) => {
     }
     let payment_status;
     if (payment_option == "COD") {
+      await redis.del(lockKey);
       payment_status = "COD";
     } else {
       payment_status = "pending";
@@ -125,9 +147,9 @@ const createOrder = async (req, res) => {
     await user.save();
     payment_option == "online"? res.status(200).json({ success: "true", orderId: newOrder._id })
     : res.render("orderSuccess", { orderId: newOrder._id });
-
-    // return res.render("orderSuccess", { orderId: newOrder._id });
   } catch (error) {
+    // await PaymentLock.deleteOne({userId:user._id})
+    await redis.del(lockKey);
     console.error("Error creating order:", error);
     res.status(500).send("Internal Server Error");
   }

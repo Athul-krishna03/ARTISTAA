@@ -7,7 +7,9 @@ const session=require("express-session");
 const userRouter=require("./routes/userRouter");
 const adminRouter=require("./routes/adminRouter")
 const passport= require("./config/passport");
+const redis = require('./helpers/redisClient');
 db()
+
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}))

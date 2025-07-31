@@ -126,14 +126,14 @@ const removeCategoryOffer = async (req,res) => {
 
 const getlistCategory = async(req,res)=>{
     try {
-        let id = req.query.id;
+        let {id} = req.body;
         const data=await Category.findById({_id:id});
         if(data.isListed == true){
             await Category.updateOne({_id:id},{$set:{isListed:false}})
-            res.redirect("/admin/category");
+            res.json({success:true,message:"category listed"})
         }else{
             await Category.updateOne({_id:id},{$set:{isListed:true}});
-            res.redirect("/admin/category");
+            res.json({success:true,message:"category unlisted"})
         }
     } catch (error) {
         console.log(error)
@@ -156,27 +156,25 @@ const getEditCategory=async (req,res) => {
 }
 const EditCategory = async (req, res) => {
     try {
-      const id = req.query.id;
-      const { name, description } = req.body;
-  
-      const existingCategory = await Category.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
-      if (existingCategory) {
-        return res.status(400).json({ status: false, message: "Category exists. Please choose another name" });
-      }
+        const id = req.query.id;
+        const { name, description } = req.body;
+    
+        const existingCategory = await Category.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
+        if (existingCategory) {
+            return res.status(400).json({ status: false, message: "Category exists. Please choose another name" });
+        }
 
-      const updateCategory = await Category.findByIdAndUpdate(id, { $set: { name: name, description: description } }, { new: true });
-      if (updateCategory) {
-         return res.json({ status: true, message: "Category updated successfully" });
-      } else {
-        return res.json({ status: false, message: "Category not found" });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ status: false, message: "Internal server error" });
-    }
-  };
-  
-
+        const updateCategory = await Category.findByIdAndUpdate(id, { $set: { name: name, description: description } }, { new: true });
+        if (updateCategory) {
+            return res.json({ status: true, message: "Category updated successfully" });
+        } else {
+            return res.json({ status: false, message: "Category not found" });
+        }
+        } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: false, message: "Internal server error" });
+        }
+    };
 module.exports={
     categoryInfo,
     addCategory,

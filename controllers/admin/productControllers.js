@@ -157,16 +157,16 @@ const removeProductOffer = async (req,res) => {
 
 const blockProduct =async(req,res)=>{
     try {
-        let id = req.query.id;
+        let {id} = req.body;
         console.log(id)
         const data=await Product.findById({_id:id});
         console.log(data)
         if(data.isBlocked === true){
             await Product.updateOne({_id:id},{$set:{isBlocked:false}})
-            res.redirect("/admin/products");
+            res.json({success:true,message:"unblock the product"})
         }else{
             await Product.updateOne({_id:id},{$set:{isBlocked:true}});
-            res.redirect("/admin/products");
+            res.json({success:true,message:"block the product"})
         }
     } catch (error) {
         console.log(error)

@@ -8,12 +8,8 @@
     </div>
     <div>
       <form class="d-flex" action="/admin/orders" method="get">
-        <input
-          type="text"
-          name="name"
-          placeholder="Search by name or order ID"
-          class="form-control bg-white me-2"
-        />
+        <input type="hidden" name="status" value="<%= query.status || '' %>" />
+        <input type="text" name="name" value="<%= query.name || '' %>" placeholder="Search by name or order ID" class="form-control bg-white me-2" />
         <button type="submit" class="btn btn-primary">
           <i class="material-icons md-search"></i> Search
         </button>
@@ -25,19 +21,14 @@
     <header class="card-header d-flex justify-content-between align-items-center">
       <h5>Filter Orders</h5>
       <form class="d-flex" action="/admin/orders" method="get">
-        <div class="me-2">
-          <select name="status" class="form-select">
-            <option value="">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Processing">Processing</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
-            <option value="Return Request">Return Request</option>
-            <option value="Returned">Returned</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Filter</button>
+        <input type="hidden" name="name" value="<%= query.name || '' %>" />
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          <% ['Pending','Processing','Shipped','Delivered','Cancelled','Return Request','Returned'].forEach(s => { %>
+            <option value="<%= s %>" <%= query.status === s ? 'selected' : '' %>><%= s %></option>
+          <% }) %>
+        </select>
+        <button type="submit" class="btn btn-primary ms-2">Filter</button>
       </form>
     </header>
 
@@ -128,6 +119,17 @@
             <% } %>
           </tbody>
         </table>
+        <% if (totalPages > 1) { %>
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <% for (let i = 1; i <= totalPages; i++) { %>
+            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+              <a class="page-link" href="/admin/orders?page=<%= i %>&limit=10<% if (query.name) { %>&name=<%= query.name %><% } %><% if (query.status) { %>&status=<%= query.status %><% } %>"><%= i %></a>
+            </li>
+          <% } %>
+        </ul>
+      </nav>
+      <% } %>
       </div>
     </div>
   </div>

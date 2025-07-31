@@ -7,23 +7,34 @@ const Wallet = require("../../models/walletSchema");
 
 const getOrderDetails = async (req, res) => {
     try {
-        const { status, name } = req.query;
+        const { status, name, page = 1, limit = 10 } = req.query;
         const filter = {};
-        if (status) {
-            filter.status = status;
-        }
+        if (status) filter.status = status;
+
+        // Build user filter if name is present
+        const userMatch = name ? { username: { $regex: name, $options: "i" } } : {};
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const orders = await Order.find(filter)
-            .sort({ createdOn: -1 })
-            .populate({
-                path: "userId",
-                match: name ? { username: { $regex: name, $options: "i" } } : {}, 
-            });
+        .sort({ createdOn: -1 })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate({
+            path: "userId",
+            match: userMatch,
+        });
+
+        const totalCount = await Order.countDocuments(filter);
 
         const filteredOrders = orders.filter((order) => order.userId !== null);
+
         return res.render("orderManagement", {
-            orders: filteredOrders,
-            activePage: "orders",
+        orders: filteredOrders,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalCount / limit),
+        query: { name, status }, // for preserving filters in pagination links
+        activePage: "orders",
         });
     } catch (error) {
         console.error("Error in getting order details:", error.message);

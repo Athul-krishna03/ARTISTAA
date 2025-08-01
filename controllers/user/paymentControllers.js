@@ -3,7 +3,8 @@ const Order = require("../../models/orderSchema");
 const Product = require("../../models/productSchema")
 require("dotenv").config();
 const crypto = require('crypto');
-const PaymentLock = require('../../models/paymentLockSchema');
+const redis = require('../../helpers/redisClient');
+const User = require("../../models/userSchema");
 
 const razorpay = new Razorpay({
 key_id:"rzp_test_fu3JZWbM4Hq2Jt",
@@ -13,6 +14,7 @@ key_secret:"Kw2OGnMFs469euAjIysokWgM"
 
 const createPayment = async (req, res) => {
     const userId = req.session.user
+    const lockKey = `lock:order:${userId}`;
     const { amount } = req.body;
     const amt = Number(amount)
     const options = {
@@ -24,27 +26,26 @@ const createPayment = async (req, res) => {
 
     try {
         const order = await razorpay.orders.create(options);
-        if(order){
-            await PaymentLock.deleteOne({userId:userId})
-        }
         return res.json({ success: true, orderId: order.id });
     } catch (error) {
-        await PaymentLock.deleteOne({userId:userId})
+        await redis.del(lockKey)
         console.error(error);
         res.status(500).json({ success: false, message: 'Failed to create order' });
     }
 }
 
 const updatePaymentStatus = async (req, res) => {
+    const user = await User.findById({ _id: req.session.user });
+    const lockKey = `lock:order:${user._id}`;
     try {
 
         const { paymentId, orderId,razorpayId, signature,status } = req.body;
         console.log(req.body)
-
         const generatedSignature = crypto.createHmac('sha256',"Kw2OGnMFs469euAjIysokWgM" )
             .update(razorpayId + "|" + paymentId)
             .digest('hex');
         console.log("generatedSignature:",generatedSignature,"signature:",signature)
+        await redis.del(lockKey)
         if (generatedSignature !== signature) {
             const order = await Order.findOneAndUpdate(
                 { _id: orderId },
@@ -58,9 +59,7 @@ const updatePaymentStatus = async (req, res) => {
                 return res.status(400).json({ success: false, message: 'Payment  failed!' });
             }
             
-        }
-
-                                                                                                                        
+        }                                                                                                        
         const order = await Order.findOneAndUpdate(
             { _id: orderId },
             { payment_status: status},
@@ -112,8 +111,11 @@ const retryPayment = async (req, res) => {
 const ondismiss = async (req,res) => {
     try {
         console.log("query orderId in dismisssal function",req.body)
+        const userId = req.session.user
+        const lockKey = `lock:order:${userId}`;
         const orderId = req.body.orderId;
         const orderData = await Order.findByIdAndDelete({_id:orderId});
+        await redis.del(lockKey)
         console.log("order Data",orderData)
         return res.status(200).json({success:true})
     } catch (error) {

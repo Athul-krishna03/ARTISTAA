@@ -132,9 +132,11 @@
 
                 <% if (wishlistItems.products && wishlistItems.products.length > 0) { %>
                     <% wishlistItems.products.forEach(item => { %>
+                        <% const imgSrc=item.productId.productImage[0]?.startsWith('http') ? item.productId.productImage[0]
+                        : '/uploads/re-image/' + item.productId.productImage[0]; %>
                         <div class="wishlist-item">
-                            <img src="/uploads/re-image/<%= item.productId.productImage[0]  %>"
-                                 alt="<%= item.productId.productName %>">
+                            <img src="<%= imgSrc  %>"
+                                alt="<%= item.productId.productName %>">
                             <div class="item-details">
                                 <h4>
                                     <%= item.productId.productName %>

@@ -60,7 +60,7 @@ const addBrand = async (req,res) => {
         const brand = req.body.name;
         const findBrand = await Brand.findOne({brandName:{ $regex: `^${brand}$`, $options: "i" }});
         if(!findBrand){
-            const image = req.file.filename;
+            const image =  req.file.path;
             const newBrand = new Brand({
                 brandName:brand,
                 brandImage:image

@@ -96,6 +96,14 @@
               </thead>
               <tbody id="brand-table-body">
                 <% data.forEach((brand, index) => { %>
+                  <% 
+                    let imgSrc=brand.brandImage[0]
+                    if (Array.isArray(brand.brandImage) && brand.brandImage[0]) {
+                      imgSrc = brand.brandImage[0]?.startsWith('http')
+                        ? brand.brandImage[0]
+                        : '/uploads/re-image/' + brand.brandImage[0];
+                    }
+                  %>
                 <tr id="brand-row-<%= brand._id %>">
                   <td class="text-start"><%= brand.brandName %></td>
                   <td class="text-start">
@@ -109,7 +117,7 @@
                       "
                     >
                       <img
-                        src="/uploads/re-image/<%= brand.brandImage[0] %>"
+                        src="<%= imgSrc %>"
                         alt="<%= brand.brandName %>"
                         class="img-fluid rounded-circle"
                         style="width: 100%; height: auto"

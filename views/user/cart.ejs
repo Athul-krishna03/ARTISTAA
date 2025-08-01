@@ -60,10 +60,12 @@
                                 <tbody>
                                     <% if (cart.items && cart.items.length> 0) { %>
                                         <% cart.items.forEach(item=> { %>
+                                            <% const imgSrc=item.productId.productImage[0]?.startsWith('http') ? item.productId.productImage[0]
+                                            : '/uploads/re-image/' + item.productId.productImage[0]; %>
                                             <tr data-product-id="<%= item.productId._id %>"
                                                 data-stock="<%= item.productId.quantity %>">
                                                 <td class="image product-thumbnail">
-                                                    <img src="/uploads/re-image/<%= item.productId.productImage[0] %>"
+                                                    <img src="<%= imgSrc%>"
                                                         alt="<%= item.productId.productName %>">
                                                 </td>
                                                 <td class="product-des product-name">

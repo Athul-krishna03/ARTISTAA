@@ -161,9 +161,11 @@
                                 </thead>
                                 <tbody>
                                     <% if (product) { %>
+                                        <% const imgSrc=product.productImage[0]?.startsWith('http') ? product.productImage[0]
+                                        : '/uploads/re-image/' + product.productImage[0]; %>
                                         <tr>
                                             <td class="image product-thumbnail">
-                                                <img src="/uploads/re-image/<%= product.productImage[0] %>"
+                                                <img src="<%= imgSrc %>"
                                                     alt="<%= product.productName %>">
                                             </td>
                                             <td>
@@ -178,9 +180,11 @@
                                         </tr>
                                         <% } else if (cart && cart.items.length> 0) { %>
                                             <% cart.items.forEach(item=> { %>
+                                                <% const imgSrc=item.productId.productImage[0]?.startsWith('http') ? item.productId.productImage[0]
+                                                : '/uploads/re-image/' + item.productId.productImage[0]; %>
                                                 <tr>
                                                     <td class="image product-thumbnail">
-                                                        <img src="/uploads/re-image/<%= item.productId.productImage[0] %>"
+                                                        <img src="<%= imgSrc %>"
                                                             alt="<%= item.productId.productName %>">
                                                     </td>
                                                     <td>
